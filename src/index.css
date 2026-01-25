@@ -1,0 +1,121 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --font-regular: "Outfit", sans-serif;
+  --font-medium: "Outfit", sans-serif;
+  --font-semibold: "Outfit", sans-serif;
+  --font-bold: "Outfit", sans-serif;
+  --color-primary: #0071e3;
+  --color-dark-100: #86868b;
+  --color-dark-200: #2e2e30;
+  --color-light-100: #adb5bd;
+}
+
+* {
+  scrollbar-color: var(--color-dark-100) var(--color-black);
+
+}
+
+:root {
+  --gradient-color: linear-gradient(
+    to bottom right,
+    #0894ff 0%,
+    #c959dd 34%,
+    #ff2e54 68%,
+    #ff9004
+  );
+}
+
+
+html {
+  width: 100vw;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+body {
+  width: 100vw;
+  overflow-x: hidden;
+  background-color: #000;
+  color: var(--color-dark-100);
+  font-family: var(--font-semibold);
+}
+
+@utility flex-center {
+  @apply flex items-center justify-center;
+}
+
+@utility flex-between {
+  @apply flex items-center justify-between;
+}
+
+@utility col-center {
+  @apply flex flex-col items-center justify-center;
+}
+
+@utility abs-center {
+  @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2;
+}
+
+@utility h3-semibold {
+  @apply font-semibold text-xl text-dark-100;
+}
+
+@utility base-semibold {
+  @apply font-semibold text-base text-dark-100;
+}
+
+@utility small-medium {
+  @apply font-medium text-xs;
+}
+
+@layer components {
+  header {
+    @apply w-screen fixed top-0 left-0 z-50 flex-center  min-h-[7vh];
+
+    nav {
+      @apply container mx-auto py-0 my-0 flex-between px-5 2xl:px-5;
+
+      img {
+        @apply cursor-pointer hover:-translate-y-0.5 transition-all duration-300 ease-in-out;
+
+        button {
+          @apply bg-transparent border-none outline-none cursor-pointer;
+        }
+      }
+
+      ul {
+        @apply flex-center gap-8;
+
+        a {
+          @apply hidden md:block text-white opacity-80 font-regular text-sm cursor-pointer hover:opacity-100 transition-all duration-300 ease-in-out;
+        }
+      }
+
+     
+      
+    }
+
+   
+  }}
+
+   #hero {
+    /* Add overflow handling and remove fixed height on smaller screens */
+    @apply h-fit lg:h-auto lg:min-h-[80vh] col-center ;
+    
+  
+
+ 
+
+  
+}
+/*
+
+
+ 
+  
+
+/
+ 
