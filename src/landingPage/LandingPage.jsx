@@ -5,9 +5,10 @@ import Hero from './landingPageComponent/Hero'
 
 function LandingPage() {
   return (
-     <main className="w-full h-screen bg-cover bg-center" style={{ backgroundImage: `url(${bgImage})` }}>
+     <main className="w-full h-screen bg-cover bg-center flex-layout" style={{ backgroundImage: `url(${bgImage})` }}>
         <NavBar/>
         <Hero/>
+        
      </main>
   )
 }
