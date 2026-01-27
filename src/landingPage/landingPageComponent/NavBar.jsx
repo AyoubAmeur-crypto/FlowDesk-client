@@ -6,6 +6,7 @@ import AuthModal from '../../modals/AuthModal'
 
 function NavBar() {
     const [loginModal,setLoginModal]=useState(false)
+    const [signUpModal,setSignUpModal]=useState(false)
      useGSAP(() => {
       if (loginModal) {
         // Animate backdrop
@@ -52,7 +53,7 @@ function NavBar() {
             )}</ul>
             
             <div className="flex-center gap-3 text-lg"><button onClick={()=>{setLoginModal(true)}} className='cursor-pointer hover:text-white/70 transition-all duration-300 ease-in-out'>Login</button>
-            <button className='text-black bg-white font-light py-0.5 px-2 rounded-md cursor-pointe text-sm lg:text-md hover:bg-white/80 transition-all duration-300 ease-in-out'>Get Started</button>
+            <button className='text-black bg-white font-light py-0.5 px-2 rounded-md cursor-pointe text-sm lg:text-md hover:bg-white/80 transition-all duration-300 ease-in-out' onClick={()=>{setSignUpModal(true)}}>Get Started</button>
             </div>
         </nav>
     </header>
@@ -65,6 +66,18 @@ function NavBar() {
     />
     <div className="modal-content fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl px-4 z-50">
       <AuthModal initialMode='login' />
+    </div>
+  </>
+)}
+
+  {signUpModal && (
+ <>
+    <div 
+      className="modal-backdrop fixed inset-0 bg-gray-700/40 backdrop-blur-sm z-40"
+      onClick={() => setSignUpModal(false)}
+    />
+    <div className="modal-content fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl px-4 z-50">
+      <AuthModal initialMode='signup' />
     </div>
   </>
 )}

@@ -12,6 +12,7 @@
   "dependencies": {
     "@gsap/react": "^2.1.2",
     "@headlessui/react": "^2.2.9",
+    "@heroicons/react": "^2.2.0",
     "@tailwindcss/vite": "^4.1.18",
     "axios": "^1.13.2",
     "clsx": "^2.1.1",
@@ -19,6 +20,7 @@
     "lucide-react": "^0.563.0",
     "radix-ui": "^1.4.3",
     "react": "^19.2.0",
+    "react-avatar": "^5.0.4",
     "react-dom": "^19.2.0",
     "react-loading-indicators": "^1.0.1",
     "react-responsive": "^10.0.1",

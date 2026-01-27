@@ -3,9 +3,14 @@ import { Button, Field, Fieldset, Input, Label, Legend } from '@headlessui/react
 import { Loader } from 'lucide-react'
 import clsx from 'clsx'
 import { gsap } from 'gsap'
+import { makeLoginRequest, makeSignUpRequest } from '../api/auth'
+import useAuthStore from '../globalState/zustand'
+import { useNavigate } from 'react-router-dom'
+import InfoCard from './infoCard'
 
 function AuthModal({initialMode='login'}) {
   const [isLogin, setIsLogin] = useState(initialMode==='login')
+  const navigate = useNavigate()
   const [loginInfos, setLoginInfos] = useState({
     email: '',
     password: ''
@@ -15,7 +20,8 @@ function AuthModal({initialMode='login'}) {
     lastName: '',
     email: '', 
         password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    phoneNumber:''
   })
   const [loadingLogin, setLoadingLogin] = useState(false)
   const [loadingSignup, setLoadingSignup] = useState(false)
@@ -27,6 +33,7 @@ function AuthModal({initialMode='login'}) {
   const buttonRef = useRef(null)
   const linkRef = useRef(null)
 
+  const login = useAuthStore((state)=>state.login)
  useEffect(() => {
   if (isLogin) {
     // Animate to Login - only animate if elements exist
@@ -75,17 +82,62 @@ function AuthModal({initialMode='login'}) {
 
   const handleLoginSubmit = async () => {
     setLoadingLogin(true)
-    // Your login logic here
-    console.log('Login with:', loginInfos)
-    // await makeLoginRequest(loginInfos)
+  
+
+
+    const userData = await makeLoginRequest(loginInfos)
+
+    if(userData.success){
+      login(userData.data)
+      
+    if(userData.data.roles.includes('ROLE_ADMIN')){
+      navigate('/admin')
+      return
+    }
+    if(userData.data.roles.includes('ROLE_CLIENT')){
+      navigate('/client')
+      return
+    }
+
+    setLoginInfos({
+       email: '',
+    password: ''
+    })
+
+
+    }else{
+      setErrors(userData.error)
+    }
     setLoadingLogin(false)
   }
 
   const handleSignupSubmit = async () => {
+     if(signupInfos.password !== signupInfos.confirmPassword){
+      setErrors("Password Doesn't Match")
+      
+      return
+    }
     setLoadingSignup(true)
-    // Your signup logic here
-    console.log('Signup with:', signupInfos)
-    // await makeSignupRequest(signupInfos)
+  
+   
+
+
+    const response = await makeSignUpRequest(signupInfos)
+    if(response.success){
+      login(response.data)
+      navigate('/panel')
+    setSignupInfos(  {
+    firstName: '',
+    lastName: '',
+    email: '', 
+        password: '',
+    confirmPassword: '',
+    phoneNumber:''
+  })
+    }else{
+
+      setErrors(response.error)
+    }
     setLoadingSignup(false)
   }
 
@@ -97,7 +149,8 @@ function AuthModal({initialMode='login'}) {
 
   return (
     <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl px-4 z-50">
-      <Fieldset className="space-y-6 rounded-xl bg-black/90 p-6 sm:p-10 relative overflow-hidden">
+      <Fieldset className="space-y-2.5 rounded-xl bg-black/90 p-6 sm:p-10 relative overflow-hidden">
+        {errors && <InfoCard type='error' message={errors}/>}
         <Legend ref={legendRef} className="text-3xl font-semibold text-white">
           {isLogin ? 'Welcome Back!' : 'Create Account'}
         </Legend>
@@ -214,6 +267,24 @@ function AuthModal({initialMode='login'}) {
                 onChange={(e) => setSignupInfos((prev) => ({ ...prev, confirmPassword: e.target.value }))}
               />
             </Field>
+
+            <Field ref={(el) => (signupFieldsRef.current[5] = el)}>
+              <Label className="text-sm/6 font-medium text-white">Phone Number</Label>
+              <Input
+  className={clsx(
+    'mt-3 block w-full rounded-lg border-none bg-white/5 px-3 py-1.5 text-sm/6 text-white',
+    'focus:outline-none focus:ring-2 focus:ring-white/25'
+  )}
+  type="tel"
+  placeholder="0612345678"
+  maxLength="10"
+  value={signupInfos.phoneNumber}
+  onChange={(e) => {
+    const value = e.target.value.replace(/[^0-9]/g, '')
+    setSignupInfos((prev) => ({ ...prev, phoneNumber: value }))
+  }}
+/>
+            </Field>
           </>
         )}
 
@@ -226,14 +297,15 @@ function AuthModal({initialMode='login'}) {
                 !signupInfos.lastName ||
                 !signupInfos.email ||
                 !signupInfos.password ||
-                !signupInfos.confirmPassword
+                !signupInfos.confirmPassword ||
+                !signupInfos.phoneNumber
           }
           onClick={isLogin ? handleLoginSubmit : handleSignupSubmit}
           className="inline-flex items-center justify-center gap-2 rounded-md bg-gray-700/80 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-inner shadow-white/10 focus:outline-none hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLogin ? (
             loadingLogin ? (
-              <Loader size={18} className="animate-spin" />
+              <Loader size={18} className="animate-spin h-6 w-8" />
             ) : (
               'Login'
             )
@@ -244,7 +316,7 @@ function AuthModal({initialMode='login'}) {
           )}
         </Button>
 
-        <Legend ref={linkRef} className="text-center text-sm font-semibold text-white/80">
+        <Legend ref={linkRef} className="text-center text-sm font-semibold text-white/80 mb-0 md:mb-[-20px]">
           {isLogin ? "Don't Have An Account? " : 'Already Have An Account? '}
           <a href="#" onClick={toggleForm} className="text-sm text-white hover:underline">
             {isLogin ? 'Create One' : 'Login'}
