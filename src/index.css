@@ -38,13 +38,17 @@ html {
 body {
   width: 100vw;
   overflow-x: hidden;
-  background-color: #000;
+  
   color: var(--color-dark-100);
   font-family: var(--font-semibold);
 }
 
 @utility flex-center {
   @apply flex items-center justify-center;
+}
+
+@utility flex-layout {
+  @apply flex flex-col items-center;
 }
 
 @utility flex-between {
@@ -72,6 +76,7 @@ body {
 }
 
 @layer components {
+  
   header {
     @apply w-screen fixed top-0 left-0 z-50 flex-center  min-h-[7vh];
 
