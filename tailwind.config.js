@@ -11,6 +11,12 @@ export default {
         semibold: ['var(--font-semibold)', 'sans-serif'],
         bold: ['var(--font-bold)', 'sans-serif'],
       },
+       scrollbar: {
+        thin: {
+          width: '4px',
+          height: '4px',
+        },
+      },
       colors: {
         primary: 'var(--color-primary)',
         'dark-100': 'var(--color-dark-100)',
@@ -19,5 +25,7 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    require('tailwind-scrollbar'),
+  ],
 }

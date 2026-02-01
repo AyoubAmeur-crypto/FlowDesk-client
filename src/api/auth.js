@@ -8,7 +8,7 @@ export const makeLoginRequest = async (userInfo)=>{
 
     try {
 
-        const loginResponse = await axios.post(backend_url+'/api/auth/signIn',userInfo)
+        const loginResponse = await axios.post(backend_url+'/api/auth/signIn',userInfo,{withCredentials:true})
 
         console.log("login response",loginResponse.data);
         
@@ -57,7 +57,7 @@ export const makeSignUpRequest = async (userData)=>{
 
     try {
 
-        const serverResponse = await axios.post(backend_url+'/api/auth/register',registerRequestDto)
+        const serverResponse = await axios.post(backend_url+'/api/auth/register',registerRequestDto,{withCredentials:true})
 
         return {
 
@@ -90,4 +90,36 @@ export const makeSignUpRequest = async (userData)=>{
         
         
     }
+
+
+
+    
 }
+
+
+export const signOut = async ()=>{
+
+        try {
+
+
+            const serverResponse = await axios.post(backend_url+'/api/auth/signOut',{},{withCredentials:true})
+
+            return serverResponse.data
+            
+        } catch (error) {
+
+            console.log("server response ",error);
+            console.log("error message",error.response.data);
+            
+            
+
+            if(error.response && error.response?.data){
+
+                return {
+                    success:false,
+                    message:error.response.data.message
+                }
+            }
+            
+        }
+    }

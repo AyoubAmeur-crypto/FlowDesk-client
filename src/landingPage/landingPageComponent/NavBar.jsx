@@ -8,7 +8,7 @@ function NavBar() {
     const [loginModal,setLoginModal]=useState(false)
     const [signUpModal,setSignUpModal]=useState(false)
      useGSAP(() => {
-      if (loginModal) {
+      if (loginModal || signUpModal) {
         // Animate backdrop
         gsap.fromTo(
           '.modal-backdrop',
@@ -35,7 +35,7 @@ function NavBar() {
           }
         )
       }
-    }, [loginModal])
+    }, [loginModal,signUpModal])
     const features =  [{label:'home',destination:'/'},{label:'services',destination:'/services'},{label:'career',destination:'/career'},{label:'pricing',destination:'/pricing'}]  
   return (
     
