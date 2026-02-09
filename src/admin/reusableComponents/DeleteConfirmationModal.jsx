@@ -5,6 +5,7 @@ import { AlertTriangle, X } from 'lucide-react';
 const DeleteConfirmationModal = ({ 
   isOpen, 
   onClose, 
+  isLoading,
   onConfirm, 
   title = "Delete Confirmation",
   message = "Are you sure you want to delete this item? This action cannot be undone.",
@@ -69,11 +70,11 @@ const DeleteConfirmationModal = ({
             <button
               onClick={() => {
                 onConfirm();
-                onClose();
+              
               }}
               className="px-4 py-2 text-sm cursor-pointer font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-900 transition-all duration-200 hover:shadow-lg hover:scale-101 active:scale-95"
-            >
-              {confirmText}
+            >{isLoading ? 'loading' : confirmText }
+              
             </button>
           </div>
         </div>

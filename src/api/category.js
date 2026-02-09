@@ -1,7 +1,43 @@
 import axios from "axios";
-import { data } from "react-router-dom";
 
 const backend_url = import.meta.env.VITE_API_URL
+
+
+export const getAvialableCategoires = async ()=>{
+
+
+    try {
+
+        const res = await axios.get(backend_url+'/api/category/allCategoires',{withCredentials:true})
+
+
+        return {
+
+            status:true,
+            data:res.data
+        }
+        
+    } catch (error) {
+
+        console.log("full server error ",error);
+
+        if(error.response && error.response.data){
+
+              return {
+
+            status:false,
+            error:error.response.data.message
+
+        }
+
+
+        }
+
+      
+        
+        
+    }
+}
 
 export const getAllCategories = async (pageNumber)=>{
 

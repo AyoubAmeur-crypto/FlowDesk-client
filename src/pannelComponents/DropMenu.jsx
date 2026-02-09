@@ -34,6 +34,7 @@ import useAuthStore from "../globalState/zustand"
 
 export const DropdownMenuItems = () => {
     const logout = useAuthStore((state)=>state.logout)
+    const userData = useAuthStore((state)=>state.userData)
 
     const navigate = useNavigate()
 
@@ -51,7 +52,7 @@ export const DropdownMenuItems = () => {
     }
   return (
     <DropdownMenuContent className="min-w-56">
-      <DropdownMenuLabel>My Account</DropdownMenuLabel>
+      <DropdownMenuLabel>{userData?.firstName?.charAt(0).toUpperCase() + userData?.firstName?.slice(1)+' '+userData?.lastName?.charAt(0).toUpperCase() + userData?.lastName?.slice(1)}</DropdownMenuLabel>
       <DropdownMenuSeparator />
 
       <DropdownMenuGroup>

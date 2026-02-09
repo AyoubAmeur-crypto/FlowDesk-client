@@ -65,6 +65,7 @@ function TableDemo({refreshTriger}) {
 
   const [sure,setSure]=useState(false)
   const [loadingUpdate,setLoadingUpdate]=useState(false)
+  const [laodingDelete,setLoadingDelete]=useState(false)
   const [deletedCategory,setDeletedCategory]=useState({
     
   })
@@ -156,23 +157,43 @@ function TableDemo({refreshTriger}) {
 
     console.log("deleted category ",category);
     
-    setLoadingCategory(true)
+    setLoadingDelete(true)
     try {
 
       const severResponse = await deleteCategory(category.categoryId)
       
-      if(severResponse.status){
-        await getCategoriyData()
+  
+      if (severResponse.status) {
+      if (categoryPage.allCategories.length === 1 && page === 0) {
+        setCategoryPage({
+          allCategories: [],
+          pageNumber: 0,
+          pageSize: pageSize,
+          totalPage: 0,
+          totalElements: 0,
+          lastPage: true
+        });
+       
+      } else {
+        await getCategoriyData();
       }
 
+       if (categoryPage.allCategories.length === 1 && page > 0) {
+        setPage(prev => prev - 1)
+      }
+
+    
+    }
+
       setDeletedCategory({})
+      setSure(false)
       
     } catch (error) {
       console.log("can't delete ",category.categoryName,", due to this",error);
       
       
     }finally{
-      setLoadingCategory(false)
+      setLoadingDelete(false)
     }
   };
 
@@ -198,10 +219,43 @@ function TableDemo({refreshTriger}) {
   );
 
   if (loadingCategory) return (
-    <div className='flex flex-center min-h-[40px]'>
-      <Loader size={28} className="animate-spin" />
+    <div className="w-full border border-gray-200 rounded-lg overflow-hidden animate-pulse">
+  {/* Table Header */}
+  <div className="bg-gray-50 border-b border-gray-200">
+    <div className="grid grid-cols-5 gap-4 px-6 py-3">
+      {[...Array(5)].map((_, i) => (
+        <div key={i} className="h-4 bg-gray-200 rounded w-3/4" />
+      ))}
     </div>
+  </div>
+  
+  {/* Table Body */}
+  <div className="bg-white divide-y divide-gray-200">
+    {[...Array(8)].map((_, rowIndex) => (
+      <div key={rowIndex} className="grid grid-cols-5 gap-4 px-6 py-4">
+        {[...Array(5)].map((_, colIndex) => (
+          <div key={colIndex} className="space-y-2">
+            <div className="h-3 bg-gray-200 rounded w-full" />
+          </div>
+        ))}
+      </div>
+    ))}
+  </div>
+</div>
   );
+
+  if(page === 0 && categoryPage.allCategories.length===0) return (
+
+     <div className="flex flex-col items-center justify-center py-24 text-center">
+              <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.5v15m7.5-7.5H4.5" />
+                </svg>
+              </div>
+              <p className="text-gray-500 text-sm">No Categories yet</p>
+              <p className="text-gray-400 text-xs mt-1">Click "Add Category" to create your first one</p>
+      </div>
+  )
  
 
   return (
@@ -342,6 +396,7 @@ function TableDemo({refreshTriger}) {
         itemName={deletedCategory?.categoryName}
         confirmText="Delete"
         cancelText="Cancel"
+        isLoading={laodingDelete}
       />
 
         <SlideInModal

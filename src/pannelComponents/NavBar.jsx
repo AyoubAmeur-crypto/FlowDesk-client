@@ -64,10 +64,8 @@ function Navbar() {
         }
     ]
 
-    // Check if current page is dashboard-related
     const isDashboardPage = location.pathname.startsWith('/admin/dashboard')
 
-    // Auto-open dashboard section if on dashboard page
     useEffect(() => {
         if (isDashboardPage && isMenuOpen) {
             setIsDashboardOpen(true)
@@ -77,11 +75,9 @@ function Navbar() {
     return (
         <div className="w-screen fixed top-0 left-0 z-50 flex justify-center border-b border-gray-300/40 bg-white backdrop-blur-sm">
             <div className="w-full max-w-[1362px] flex-between px-6 lg:px-30">
-                {/* Left section */}
                 <div className="flex-between gap-[34px] p-[29px]">
                     <img src={logo} className='w-[110px] h-[30px]' alt="Logo" />
                     
-                    {/* Desktop Navigation */}
                     <div className="hidden lg:flex gap-[34px]">
                         <Link to='/admin/dashboard/categories' className={`cursor-pointer pb-[33px] -mb-[31px] border-b-2 transition-colors ${isDashboardPage ? 'border-black/70 text-black/70' : 'border-transparent hover:text-black/70 hover:border-black/70'}`}>
                             Dashboard
@@ -95,12 +91,10 @@ function Navbar() {
                     </div>
                 </div>
 
-                {/* Right section */}
                 <div className="flex-between gap-[15px]">
-                    {/* Desktop Right Menu */}
                     <div className="hidden md:flex items-center gap-[15px]">
-                        <button className='p-1.75 rounded-lg cursor-pointer hover:bg-gray-300/40 transition-colors'>
-                            <img src={bell} className='h-[24px]' alt="Notifications" />
+                        <button className='px-1.75 py-0.5 rounded-lg cursor-pointer hover:bg-gray-300/40 transition-colors'>
+                            <img src={bell} className='h-[38px] w-[38px]' alt="Notifications" />
                         </button>
                         <Avatar 
                             size="35" 
@@ -108,16 +102,15 @@ function Navbar() {
                             round={true}
                         />   
                           <DropdownMenu>
-                                <DropdownMenuTrigger>
-                                     <button  className='flex items-center gap-2 py-2 hover:text-black/70 transition-colors w-full text-left'>
-                                Account <ChevronDown size={16} />
-                            </button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuItems/>
-                            </DropdownMenu>
+  <DropdownMenuTrigger asChild>
+    <div className='flex items-center gap-2 py-2 hover:text-black/70 transition-colors w-full text-left cursor-pointer'>
+      Account <ChevronDown size={16} />
+    </div>
+  </DropdownMenuTrigger>
+  <DropdownMenuItems/>
+</DropdownMenu>
                     </div>
 
-                    {/* Mobile: Avatar + Burger */}
                     <div className="flex md:hidden items-center gap-3">
                         <Avatar 
                             size="35" 
@@ -134,11 +127,9 @@ function Navbar() {
                 </div>
             </div>
 
-            {/* Mobile Menu */}
             {isMenuOpen && (
                 <div className="absolute top-[88px] left-0 w-full bg-white border-b border-gray-300/40 md:hidden shadow-sm max-h-[calc(100vh-88px)] overflow-y-auto">
                     <div className="flex flex-col p-6 gap-4">
-                        {/* Dashboard with collapsible submenu */}
                         <div>
                             <button 
                                 onClick={() => setIsDashboardOpen(!isDashboardOpen)}
@@ -148,7 +139,6 @@ function Navbar() {
                                 {isDashboardOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                             </button>
                             
-                            {/* Dashboard Sub-menu - Collapsible */}
                             <div className={`overflow-hidden transition-all duration-300 ${isDashboardOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
                                 <div className="pl-4 border-l-2 border-gray-200 flex flex-col gap-2 mt-2">
                                     {dashboardItems.map((item, index) => (
