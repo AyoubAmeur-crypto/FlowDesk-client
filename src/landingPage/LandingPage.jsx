@@ -5,6 +5,7 @@ import Hero from './landingPageComponent/Hero'
 import Banner1 from './landingPageComponent/Banner1'
 import Banner2 from './landingPageComponent/Banner2'
 import Banner3 from './landingPageComponent/Banner3'
+import { Banner4 } from './landingPageComponent/Banner4'
 
 function LandingPage() {
   return (
@@ -21,6 +22,7 @@ function LandingPage() {
         <Banner1/>
         <Banner2/>
         <Banner3/>
+        <Banner4/>
         
      </main>
   )
