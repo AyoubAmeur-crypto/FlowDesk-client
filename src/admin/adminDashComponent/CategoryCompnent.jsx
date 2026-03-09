@@ -2,12 +2,14 @@ import React, { useState } from 'react'
 import TableDemo from '../reusableComponents/Table'
 import SlideInModal from '../reusableComponents/AddUpdateModal'
 import { createCategory, getAllCategories } from '../../api/category'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 function CategoryCompnent() {
 
 
   const [addCategoryLoading,setAddCategoryLoading]=useState(false)
   const [refreshTriger,setRefreshTrigger]=useState(0)
+  const [page,setPage]=useState(0)
   const [addCategoryError,setAddCategoryError]=useState('')
 
 
@@ -39,6 +41,12 @@ function CategoryCompnent() {
 
     }
   }
+  const queryClient = useQueryClient()
+
+  const addCategoryMutation = useMutation({
+  mutationFn:({formData})=>createCategory(formData),
+  onSuccess:()=>{queryClient.invalidateQueries(["categories",page]),setAddCategory(prev=>!prev)}
+})
     const categoryFields = [
     {
       name: 'categoryName',
@@ -62,18 +70,23 @@ function CategoryCompnent() {
         >Add Category</button>
       </div>
       <div className="   px-3 lg:px-10 pt-5">
-        <TableDemo refreshTriger={refreshTriger}/>
+        <TableDemo />
       </div>
     </div>
 
      <SlideInModal
       isOpen={addCategory}
       onClose={()=>{setAddCategory(false)}}
-      onSubmit={createCategoryClient}
-      isLoading={addCategoryLoading}
+      onSubmit={(formData)=>{
+
+        addCategoryMutation.mutate({
+          formData:formData
+        })
+      }}
+      isLoading={addCategoryMutation.isPending}
       fields={categoryFields}
       title='Add Category'
-      errors={addCategoryError}
+      errors={addCategoryMutation.error?.message}
 
       
       />

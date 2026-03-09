@@ -11,26 +11,21 @@ export const getAvialableCategoires = async ()=>{
         const res = await axios.get(backend_url+'/api/category/allCategoires',{withCredentials:true})
 
 
-        return {
-
-            status:true,
-            data:res.data
-        }
+        return res.data
         
     } catch (error) {
 
-        console.log("full server error ",error);
+        console.log("full server response",error);
+        console.log("specific error message",error.response.data);
+        
 
         if(error.response && error.response.data){
 
-              return {
 
-            status:false,
-            error:error.response.data.message
-
-        }
+            const message = error.response.data.message
 
 
+            throw new Error(message)
         }
 
       
@@ -54,15 +49,17 @@ export const getAllCategories = async (pageNumber)=>{
         
     } catch (error) {
 
-        console.log("server error response",error);
-        console.log("specific server response",error.response.data);
+       console.log("full server response",error);
+        console.log("specific error message",error.response.data);
+        
 
-        if(error && error.response.data){
+        if(error.response && error.response.data){
 
-            return{
-                sucess:false,
-                message:error.response.data.message
-            }
+
+            const message = error.response.data.message
+
+
+            throw new Error(message)
         }
         
         
@@ -85,14 +82,16 @@ export const createCategory = async (categoryDto)=>{
         
     } catch (error) {
         console.log("full server response",error);
+        console.log("specific error message",error.response.data);
+        
 
         if(error.response && error.response.data){
 
 
-            return {
-                status:false,
-                error:error.response.data.message
-            }
+            const message = error.response.data.message
+
+
+            throw new Error(message)
         }
         
     }
@@ -118,20 +117,18 @@ export const updateCategory = async (id,categoryDto)=>{
         
     } catch (error) {
 
-        console.log("full server response ",error);
+
+        console.log("full server response",error);
+        console.log("specific error message",error.response.data);
+        
 
         if(error.response && error.response.data){
 
-            return{
 
-            status:false,
-            error:error.response.data.message
-        }
-        }
+            const message = error.response.data.message
 
-         return {
-            status: false,
-            error: error.message || "Update failed"
+
+            throw new Error(message)
         }
         
         
@@ -139,6 +136,9 @@ export const updateCategory = async (id,categoryDto)=>{
 }
 
 export const deleteCategory = async(id)=>{
+
+    console.log("check what we are sending to back office deleted Caetegory Id : ",id);
+    
 
     try {
 
@@ -152,15 +152,17 @@ export const deleteCategory = async(id)=>{
     } catch (error) {
 
 
-        console.log("full server response ",error);
+        console.log("full server response",error);
+        console.log("specific error message",error.response.data);
+        
 
         if(error.response && error.response.data){
-            
-            return{
-                status:false,
-                error:error.response.data.message
-            }
-            
+
+
+            const message = error.response.data.message
+
+
+            throw new Error(message)
         }
         
         

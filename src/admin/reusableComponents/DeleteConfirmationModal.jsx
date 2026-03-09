@@ -73,7 +73,7 @@ const DeleteConfirmationModal = ({
               
               }}
               className="px-4 py-2 text-sm cursor-pointer font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-900 transition-all duration-200 hover:shadow-lg hover:scale-101 active:scale-95"
-            >{isLoading ? 'loading' : confirmText }
+            >{isLoading ? 'deleting' : confirmText }
               
             </button>
           </div>

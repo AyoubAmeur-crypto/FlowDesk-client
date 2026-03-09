@@ -20,7 +20,7 @@ const ServiceSlideInModal = ({
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
 
   const isGeneralError = typeof errors === 'string' && errors.length > 0;
-  const fieldErrors = typeof errors === 'object' ? errors : {};
+  const fieldErrors = (errors && typeof errors === 'object') ? errors : {};
 
   const filteredCategories = categories.filter(cat =>
     cat.categoryName.toLowerCase().includes(categorySearch.toLowerCase())
@@ -63,6 +63,8 @@ const ServiceSlideInModal = ({
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    console.log("image type:", typeof formData.serviceImage, formData.serviceImage instanceof File)
+
     onSubmit(formData);
   };
 

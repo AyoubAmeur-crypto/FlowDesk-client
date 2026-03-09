@@ -6,6 +6,7 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from '@tanstack/react-table';
+import {getCategoryQueryOption} from '../queries/projectQuerry'
 
 import { clsx } from 'clsx';
 
@@ -22,6 +23,7 @@ import { deleteCategory, getAllCategories, updateCategory } from '../../api/cate
 import { Loader } from 'lucide-react';
 import DeleteConfirmationModal from './DeleteConfirmationModal';
 import SlideInModal from './AddUpdateModal';
+import { useMutation, useQueryClient, useSuspenseQueries } from '@tanstack/react-query';
 
 const workspacesColumns = [
   {
@@ -60,11 +62,10 @@ const Button = ({ onClick, disabled, children }) => {
   );
 };
 
-function TableDemo({refreshTriger}) {
+function TableDemo() {
   const pageSize = 6;
 
   const [sure,setSure]=useState(false)
-  const [loadingUpdate,setLoadingUpdate]=useState(false)
   const [laodingDelete,setLoadingDelete]=useState(false)
   const [deletedCategory,setDeletedCategory]=useState({
     
@@ -85,140 +86,62 @@ function TableDemo({refreshTriger}) {
   })
 
   const [updateModal,setUpdatedModal]=useState(false)
-  const [updateError,setUpdateError]=useState('')
 
 
-  const [categoryPage, setCategoryPage] = useState({
-    allCategories: [],
-    pageNumber: 0,
-    pageSize: pageSize,
-    totalPage: 0,
-    totalElements: 0,
-    lastPage: true
-  });
+  
 
   const [page, setPage] = useState(0);
-  const [loadingCategory, setLoadingCategory] = useState(false);
   const [hoveredRowId, setHoveredRowId] = useState(null);
 
-  const getCategoriyData = async () => {
-    setLoadingCategory(true);
 
-    try {
+  const [{data,error,isPending,refetch}] = useSuspenseQueries({
+    queries:[getCategoryQueryOption(page)]
+  })
 
-
-      
-      const serverResponse = await getAllCategories(page);
-
-      if (serverResponse.sucess) {
-        console.log("Category page data ", serverResponse.data);
-        setCategoryPage(serverResponse.data);
-      }
-    } catch (error) {
-      console.log("can't get category data due to this", error);
-    } finally {
-      setLoadingCategory(false);
-    }
-  };
-
-  useEffect(() => {
-    getCategoriyData();
-  }, [page,refreshTriger]);
-
-  const handleEdit = async (category) => {
-    setLoadingUpdate(true)
-    try {
-      console.log("check what sent ",category);
-       const updateData = {
-            categoryName: category.categoryName
-        }
-      
-      const res = await updateCategory(updatedCategory.categoryId,updateData)
-      if(res.status){
-        await getCategoriyData()
-        setUpdatedModal(false)
-        setUpdateError('')
-      }else{
-
-        setUpdateError(res.error)
-      }
-    } catch (error) {
-
-      console.log("can't update due to this",error);
-          setUpdateError("Failed to update category")
-
-      
-    }finally{
-      setLoadingUpdate(false)
-    }
-  };
-
-  const handleDelete = async (category) => {
-
-    console.log("deleted category ",category);
-    
-    setLoadingDelete(true)
-    try {
-
-      const severResponse = await deleteCategory(category.categoryId)
-      
   
-      if (severResponse.status) {
-      if (categoryPage.allCategories.length === 1 && page === 0) {
-        setCategoryPage({
-          allCategories: [],
-          pageNumber: 0,
-          pageSize: pageSize,
-          totalPage: 0,
-          totalElements: 0,
-          lastPage: true
-        });
-       
-      } else {
-        await getCategoriyData();
-      }
+const queryClient = useQueryClient()
 
-       if (categoryPage.allCategories.length === 1 && page > 0) {
-        setPage(prev => prev - 1)
-      }
+  const editMutationCategory = useMutation({
+  mutationFn: ({ categoryId, updateData }) => updateCategory(categoryId, updateData),
+  onSuccess: () => { queryClient.invalidateQueries(["categories", page]),setUpdatedModal(prev=>!prev) }
+});
 
-    
-    }
+const deleteMutationCategory = useMutation({
 
-      setDeletedCategory({})
-      setSure(false)
-      
-    } catch (error) {
-      console.log("can't delete ",category.categoryName,", due to this",error);
-      
-      
-    }finally{
-      setLoadingDelete(false)
-    }
-  };
+  mutationFn:(categoryId)=>deleteCategory(categoryId),
+  onSuccess:()=>{queryClient.invalidateQueries(["categories",page]),setSure(prev=>!prev)}
+})
+
+
+
+
+  
+
+
+
 
   const table = useReactTable({
-    data: categoryPage.allCategories || [],
+    data: data.data.allCategories || [],
     columns: workspacesColumns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     initialState: {
       pagination: {
-        pageIndex: categoryPage.pageNumber || 0,
-        pageSize: categoryPage.pageSize || pageSize,
+        pageIndex: data.data.pageNumber || 0,
+        pageSize: data.data.pageSize || pageSize,
       },
     },
   });
 
   // Calculate the range for the last page
-  const totalRows = categoryPage.totalElements || 0;
+  const totalRows = data.data.totalElements || 0;
   const lastPageStartIndex = Math.floor(totalRows / pageSize) * pageSize + 1;
   const lastPageEndIndex = Math.min(
     totalRows,
     lastPageStartIndex + pageSize - 1,
   );
 
-  if (loadingCategory) return (
+  if (isPending) return (
     <div className="w-full border border-gray-200 rounded-lg overflow-hidden animate-pulse">
   {/* Table Header */}
   <div className="bg-gray-50 border-b border-gray-200">
@@ -244,7 +167,7 @@ function TableDemo({refreshTriger}) {
 </div>
   );
 
-  if(page === 0 && categoryPage.allCategories.length===0) return (
+  if(page === 0 && data.data.allCategories.length===0) return (
 
      <div className="flex flex-col items-center justify-center py-24 text-center">
               <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
@@ -345,26 +268,22 @@ function TableDemo({refreshTriger}) {
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-3">
         <p className="text-sm tabular-nums text-black">
-          Showing{' '}
-          <span className="font-medium text-gray-900">
-            {table.getState().pagination.pageIndex ===
-            Math.floor(totalRows / pageSize)
-              ? lastPageStartIndex + '-' + lastPageEndIndex
-              : table.getState().pagination.pageIndex * pageSize +
-                1 +
-                '-' +
-                (table.getState().pagination.pageIndex + 1) * pageSize}
-          </span>{' '}
-          of
-          <span className="font-medium text-gray-900">
-            {' '}
-            {table.getFilteredRowModel().rows.length}
-          </span>
-        </p>
+  Showing{' '}
+  <span className="font-medium text-gray-900">
+    {data.data.totalElements === 0
+      ? '0'
+      : `${data.data.pageNumber * data.data.pageSize + 1}-${Math.min((data.data.pageNumber + 1) * data.data.pageSize, data.data.totalElements)}`}
+  </span>{' '}
+  of
+  <span className="font-medium text-gray-900">
+    {' '}
+    {data.data.totalElements}
+  </span>
+</p>
         <div className="inline-flex items-center rounded-full shadow-sm ring-1 ring-inset ring-gray-300">
           <Button
             onClick={() => { setPage(prev => prev - 1) }}
-            disabled={categoryPage.pageNumber === 0}
+            disabled={data.data.pageNumber === 0}
           >
             <span className="sr-only">Previous</span>
             <RiArrowLeftSLine
@@ -375,7 +294,7 @@ function TableDemo({refreshTriger}) {
           <span className="h-5 border-r border-gray-300" aria-hidden={true} />
           <Button
             onClick={() => { setPage(prev => prev + 1) }}
-            disabled={categoryPage.lastPage}
+            disabled={data.data.lastPage}
           >
             <span className="sr-only">Next</span>
             <RiArrowRightSLine
@@ -390,30 +309,33 @@ function TableDemo({refreshTriger}) {
      <DeleteConfirmationModal
         isOpen={sure}
         onClose={() => setSure(false)}
-        onConfirm={()=>{handleDelete(deletedCategory)}}
+       onConfirm={() => {
+  deleteMutationCategory.mutate(deletedCategory.categoryId)
+}}
         title="Delete Category"
         message="Are you sure you want to delete this category? This action cannot be undone and will remove all associated services."
         itemName={deletedCategory?.categoryName}
         confirmText="Delete"
         cancelText="Cancel"
-        isLoading={laodingDelete}
+        isLoading={deleteMutationCategory.isPending}
       />
 
         <SlideInModal
-      isOpen={updateModal}
-      onClose={()=>{setUpdatedModal(false)}}
-      onSubmit={handleEdit}
-      initialData={updatedCategory}
-    
-      fields={categoryFields}
-      title='Update Category'
-      errors={updateError}
-      isLoading={loadingUpdate}
-      submitText='update'
-      
-
-      
-      />
+  isOpen={updateModal}
+  onClose={() => { setUpdatedModal(false) }}
+  onSubmit={(formData) => {
+    editMutationCategory.mutate({
+      categoryId: updatedCategory.categoryId,
+      updateData: formData
+    });
+  }}
+  initialData={updatedCategory}
+  fields={categoryFields}
+  title='Update Category'
+  errors={editMutationCategory.error}
+  isLoading={editMutationCategory.isPending}
+  submitText='update'
+/>
      
     </>
 

@@ -25,10 +25,7 @@ export const createService = async(formData)=>{
             }
         );
 
-        return {
-            status: true,
-            data: res.data
-        }
+       return res.data
         
     } catch (error) {
         console.log("full server response", error);
@@ -36,10 +33,10 @@ export const createService = async(formData)=>{
 
 
         if(error.response && error.response.data) {
-            return {
-                status: false,
-                error: error.response.data.message
-            }
+           
+            const message = error.response.data.message
+
+            throw new Error(message)
         }
     }
 } 
@@ -61,11 +58,7 @@ export const getAllServices = async(
 
         const services = await axios.get(backend_url+`/api/service/services?pageNumber=${pageNumber}&pageSize=${pageSize}&sortMethod=${sortMethod}&sortBy=${sortBy}&categoryId=${selectedCategory}&keyword=${searchQuerry}`,{withCredentials:true})
 
-        return {
-
-            status:true,
-            data:services.data
-        }
+        return services.data
 
         
     } catch (error) {
@@ -76,10 +69,10 @@ export const getAllServices = async(
 
         if(error.response && error.response.data){
 
-            return {
-                status:false,
-                error:error.response.data.message
-            }
+            const message = error.response.data.message
+
+
+            throw new Error(message)
         }
         
         
@@ -90,19 +83,30 @@ export const getAllServices = async(
 
 export const updateService = async(serviceId,formData)=>{
 
+     const multipartFormData = new FormData();
+        
+        multipartFormData.append("serviceName", formData.serviceName);
+        multipartFormData.append("serviceDescription", formData.serviceDescription);
+        multipartFormData.append("servicePrice", formData.servicePrice);
+        if (formData.serviceImage instanceof File) {
+            multipartFormData.append("serviceImage", formData.serviceImage);
+
+      }
+
     try {
 
-        console.log("check the data before sending it ",serviceId,formData);
-        
+for (let [key, value] of multipartFormData.entries()) {
+    console.log(key, value);
+}        
 
-        const res = await axios.put(backend_url+`/api/service/updateService/${serviceId}`,formData,{
+        const res = await axios.put(backend_url+`/api/service/updateService/${serviceId}`,multipartFormData,{
             withCredentials:true
         })
 
-        return {
-            status:true,
-            data:res.data
-        }
+        console.log("check the resposne data ",res.data);
+        
+
+        return res.data
         
     } catch (error) {
         console.log("full server error",error);
@@ -110,11 +114,9 @@ export const updateService = async(serviceId,formData)=>{
 
         if(error.response && error.response.data){
 
-            return {
+            const message = error.response.data.message
 
-                status:false,
-                error:error.response.data.message
-            }
+            throw new Error(message)
         }
         
         

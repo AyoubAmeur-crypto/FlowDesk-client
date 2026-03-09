@@ -6,6 +6,8 @@ import ServiceSlideInModal from '../reusableComponents/SlideInServiceModal'
 import {getAvialableCategoires} from '../../api/category'
 import {createService,getAllServices,updateService,deleteService} from '../../api/service'
 import DeleteConfirmationModal from '../reusableComponents/DeleteConfirmationModal';
+import { useMutation, useQueryClient, useSuspenseQueries } from '@tanstack/react-query';
+import {getServicesQueryOption,getCategoryQueryOptionList} from '../queries/projectQuerry'
 
 const Button = ({ onClick, disabled, children }) => {
   return (
@@ -74,124 +76,79 @@ const Dropdown = ({ service, onEdit, onDelete }) => {
 };
 
 function ServiceComponent() {
-  const [services, setServices] = useState([])
-  const [categories, setCategories] = useState([])
-  const [loading, setLoading] = useState(true)
   const [addModalOpen, setAddModalOpen] = useState(false)
   const [updateModalOpen, setUpdateModalOpen] = useState(false)
   const [selectedService, setSelectedService] = useState(null)
-  const [formLoading, setFormLoading] = useState(false)
   const [formError, setFormError] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
   const [deleteModal,setDeleteModal]=useState(false)
-  const [deleteLoading,setDeleteLoading]=useState(false)
   const [pagignation,setPagignation]=useState({
     pageNumber:0,
     pageSize:8,
     sortMethod:'desc',
     sortBy:'serviceId'
   })
-  const [triggerService,setTriggerService]=useState(0)
-  const [pagignationInfos,setPagignationInfos]=useState({
-    lastPage:false,
-    pageNumber:0,
-    pageSize:8,
-    totalPage: 1,
-    totalElements: 8,
-  })
 
-  const fetchData = async () => {
-    setLoading(true)
-    try {
-      const [categoriesRes, servicesRes] = await Promise.all([
-        getAvialableCategoires(),
-        getAllServices(
-          pagignation.pageNumber,
+
+ 
+
+
+
+
+
+  const [{data,isPending,error,refetch},categoryResponse] = useSuspenseQueries({
+    queries:[getServicesQueryOption(pagignation.pageNumber,
           pagignation.pageSize,
           pagignation.sortMethod,
           pagignation.sortBy,
           searchQuery,
-          selectedCategory
-        )
-      ])
+          selectedCategory),getCategoryQueryOptionList()]
+  })
+  const queryClient = useQueryClient()
 
-      if (categoriesRes.status) {
-        console.log("category response ",categoriesRes.data);
-        setCategories(categoriesRes.data)
-      }
-
-      if(servicesRes.status){
-        setServices(servicesRes.data.services)
-        setPagignationInfos({lastPage:servicesRes.data.lastPage,
-          pageNumber:servicesRes.data.pageNumber,
-          totalElements:servicesRes.data.totalElements,
-          pageSize:servicesRes.data.pageSize,
-          totalPage:servicesRes.data.totalPage
-        })
-        if(categoriesRes.error){
-          setFormError(categoriesRes.error)
-        }if(servicesRes.error){
-          setFormError(servicesRes.error)
-        }
-      }
-    } catch (error) {
-      console.log("can't fetch data", error)
-    } finally {
-      setLoading(false)
-    }
+  const queryKey = [
+  "services",
+  {
+    pageNumber: pagignation.pageNumber,
+    pageSize: pagignation.pageSize,
+    sortMethod: pagignation.sortMethod,
+    sortBy: pagignation.sortBy,
+    searchQuery: pagignation.searchQuery,
+    selectedCategory,
   }
+];
 
-  useEffect(() => {
-    fetchData()
-  }, [triggerService, pagignation, searchQuery, selectedCategory])
+  const handleCreateServiceMutation = useMutation({
+    mutationFn:(formData)=>createService(formData),
+    onSuccess:()=>{queryClient.invalidateQueries({ queryKey: ["services"] }),setAddModalOpen(prev=>!prev)}
+    
+  })
 
 
-  const handleCreate = async (formData) => {
-    setFormLoading(true)
-    setFormError('')
-    try {
-      const res = await createService(formData)
-
-      if(res.status){
-        setTriggerService(prev=>prev+1)
-        setAddModalOpen(false)
-      } else{
-        setFormError(res.error || 'Failed to create Service')
-      }
-    } catch (error) {
-      setFormError('An error occurred while creating the service')
-    } finally {
-      setFormLoading(false)
-    }
-  }
-
-  const handleUpdate = async (formData) => {
-    setFormLoading(true)
-    setFormError('')
-    try {
-      const payload = new FormData()
-      payload.append('serviceName', formData.serviceName)
-      payload.append('serviceDescription', formData.serviceDescription)
-      payload.append('servicePrice', formData.servicePrice)
-      if (formData.serviceImage instanceof File) {
-        payload.append('serviceImage', formData.serviceImage)
-      }
-
-       const res = await updateService(selectedService.serviceId, payload)
-       if (res.status) {
+    const handleUpdateMutation = useMutation({
+    mutationFn:({serviceId,formData})=>updateService(serviceId, formData),
+   onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["services"] })  
       setUpdateModalOpen(false)
-       setSelectedService(null)
-      fetchData()
-    } else {
-     setFormError(res.error)
-   }
-    } catch (error) {
-      setFormError('An error occurred while updating the service')
-    } finally {
-      setFormLoading(false)
-    }
-  }
+           }    
+  })
+
+
+  const handleDeleteMutation = useMutation({
+    mutationFn:(serviceId)=>deleteService(serviceId),
+   onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["services"] })  
+      setDeleteModal(false)
+           }    
+  })
+
+
+ 
+
+
+
+
 
   const handleEditClick = (service) => {
     setSelectedService(service)
@@ -207,33 +164,7 @@ function ServiceComponent() {
     }
 
 
-  const handleDeleteClick = async (service) => {
-
-    setDeleteLoading(true)
-    try {
-
-
-    const serverRes = await deleteService(service?.serviceId)
-
-    if(serverRes.status){
-
-      await fetchData()
-      setDeleteModal(false)
-    }else{
-      setFormError(serverRes.error)
-    }
-      
-    } catch (error) {
-      
-  
-        setFormError('An error occurred while deleting')
-        console.log("check the error ",error);
-        
-
-
-  }finally{
-    setDeleteLoading(false)
-  }}
+ 
 
   const handleCardClick = (service) => {
     handleEditClick(service);
@@ -293,12 +224,12 @@ function ServiceComponent() {
             >
               All
             </button>
-            {categories.map((category) => (
+            {categoryResponse.data.map((category) => (
               <button
                 key={category.categoryId}
-                onClick={() => setSelectedCategory(category.categoryId.toString())}
+                onClick={() => setSelectedCategory(category.categoryId)}
                 className={`px-3 py-1 rounded-md text-xs transition-colors ${
-                  selectedCategory === category.categoryId.toString()
+                  selectedCategory === category.categoryId
                     ? 'bg-black text-white'
                     : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
                 }`}
@@ -310,7 +241,7 @@ function ServiceComponent() {
         </div>
 
         <div className="px-3 lg:px-10 pt-5 custom-scrollbar">
-          {loading ? (
+          {isPending ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {[...Array(6)].map((_, i) => (
                 <div key={i} className="rounded-md shadow-sm border border-gray-100 overflow-hidden animate-pulse">
@@ -326,7 +257,7 @@ function ServiceComponent() {
                 </div>
               ))}
             </div>
-          ) : services.length === 0 ? (
+          ) : data.services?.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 text-center">
               <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
                 <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -338,7 +269,7 @@ function ServiceComponent() {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {services.map((service) => (
+              {data.services.map((service) => (
                 <div
                   key={service.serviceId}
                   onClick={() => handleCardClick(service)}
@@ -400,19 +331,19 @@ function ServiceComponent() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-3 pb-3 px-4">
           <p className="text-sm tabular-nums text-black">
             Showing{' '}
-  {pagignation.pageNumber * pagignationInfos.pageSize + 1}-{Math.min((pagignation.pageNumber + 1) * pagignationInfos.pageSize, pagignationInfos.totalElements)}
+  {data.pageNumber * data.pageSize + 1}-{Math.min((data.pageNumber + 1) * data.pageSize, data.totalElements)}
             {' '}
             of
             {' '}
-            {pagignationInfos.totalElements}
+            {data.totalElements}
          <span className="font-medium text-gray-900">
     {' '}
-    (Page {pagignation.pageNumber + 1} of {pagignationInfos.totalPage})
+    (Page {data.pageNumber + 1} of {data.totalPage})
   </span>
           </p>
           <div className="inline-flex items-center rounded-full shadow-sm ring-1 ring-inset ring-gray-300">
             <Button
-              disabled={pagignation.pageNumber===0}
+              disabled={data.pageNumber===0}
             >
               <span className="sr-only">Previous</span>
               <RiArrowLeftSLine
@@ -423,7 +354,7 @@ function ServiceComponent() {
             </Button>
             <span className="h-5 border-r border-gray-300" aria-hidden={true} />
             <Button
-              disabled={pagignationInfos.lastPage}
+              disabled={data.lastPage}
               onClick={()=>{setPagignation(prev=>({...prev,pageNumber:prev.pageNumber+1}))}}
             >
               <span className="sr-only">Next</span>
@@ -442,12 +373,14 @@ function ServiceComponent() {
           setAddModalOpen(false)
           setFormError('')
         }}
-        onSubmit={handleCreate}
-        isLoading={formLoading}
+        onSubmit={(formData)=>{
+          handleCreateServiceMutation.mutate(formData)
+        }}
+        isLoading={handleCreateServiceMutation.isPending}
         title="Add Service"
         submitText="Save"
-        errors={formError}
-        categories={categories}
+        errors={handleCreateServiceMutation.error?.message ?? ''}
+        categories={categoryResponse.data}
       />
 
       <ServiceSlideInModal
@@ -457,13 +390,17 @@ function ServiceComponent() {
           setSelectedService(null)
           setFormError('')
         }}
-        onSubmit={handleUpdate}
-        isLoading={formLoading}
+        onSubmit={(formData)=>{handleUpdateMutation.mutate({
+         
+          serviceId:selectedService.serviceId,
+          formData:formData
+        })}}
+        isLoading={handleUpdateMutation.isPending}
         title="Update Service"
         submitText="Update"
         initialData={selectedService || {}}
-        errors={formError}
-        categories={categories}
+        errors={handleUpdateMutation.error?.message || ''}
+        categories={categoryResponse.data}
       />
 
       <DeleteConfirmationModal
@@ -474,8 +411,8 @@ function ServiceComponent() {
 
         setDeleteModal(false)}}
       itemName={selectedService?.serviceName}
-      onConfirm={()=>{handleDeleteClick(selectedService)}}
-      isLoading={deleteLoading}
+      onConfirm={()=>{handleDeleteMutation.mutate(selectedService?.serviceId)}}
+      isLoading={handleDeleteMutation.isPending}
       
       cancelText='cancel'
       confirmText='Delete'
