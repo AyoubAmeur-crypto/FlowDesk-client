@@ -6,6 +6,10 @@ import Banner1 from './landingPageComponent/Banner1'
 import Banner2 from './landingPageComponent/Banner2'
 import Banner3 from './landingPageComponent/Banner3'
 import { Banner4 } from './landingPageComponent/Banner4'
+import ServicesSection from './landingPageComponent/ServicesSection'
+import CtaAction from './landingPageComponent/CTASection'
+import FeatureHighlight from './landingPageComponent/FeatureHighlights'
+
 
 function LandingPage() {
   return (
@@ -23,6 +27,8 @@ function LandingPage() {
         <Banner2/>
         <Banner3/>
         <Banner4/>
+        <ServicesSection/>
+        <CtaAction/>
         
      </main>
   )
