@@ -41,6 +41,32 @@ try {
 
 }
 
+export const getAcceptedProject = async (pageNumber)=>{
+
+
+    try {
+
+        const response = await axios.get(backend_url+`/api/project/getAcceptedProject?pageNumber=${pageNumber}`,{withCredentials:true})
+
+
+        return response.data
+        
+    } catch (error) {
+        console.log("full server error",error);
+
+        console.log("specific error",error.response?.data);
+
+        const message = error.response.data.message || "Something went Wrong Please Try Again!"
+
+        throw new Error(message)
+
+
+        
+        
+        
+    }
+}
+ 
 
 export  const updateRequestStatus = async (projectId,status)=>{
 

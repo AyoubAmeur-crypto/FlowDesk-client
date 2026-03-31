@@ -11,14 +11,14 @@ const LINE1_WORDS = ["Let's", 'Build', 'Something']
 const LINE2_WORDS = ['Extraordinary', 'Together']
 
 function CTASection() {
-  const sectionRef   = useRef(null)
-  const bgLayerRef   = useRef(null)
-  const glowRef      = useRef(null)
-  const badgeRef     = useRef(null)
-  const headingRef   = useRef(null)
-  const paraRef      = useRef(null)
-  const buttonsRef   = useRef(null)
-  const featuresRef  = useRef(null)
+  const sectionRef  = useRef(null)
+  const bgLayerRef  = useRef(null)
+  const glowRef     = useRef(null)
+  const badgeRef    = useRef(null)
+  const headingRef  = useRef(null)
+  const paraRef     = useRef(null)
+  const buttonsRef  = useRef(null)
+  const featuresRef = useRef(null)
 
   useEffect(() => {
     const timer = setTimeout(() => { ScrollTrigger.refresh() }, 100)
@@ -27,128 +27,124 @@ function CTASection() {
 
   useGSAP(() => {
     const section = sectionRef.current
-    const glow    = glowRef.current
     if (!section) return
 
     const ctx = gsap.context(() => {
       const bg       = bgLayerRef.current
+      const glow     = glowRef.current
       const words    = section.querySelectorAll('.cta-word')
       const badge    = badgeRef.current
       const para     = paraRef.current
       const buttons  = Array.from(buttonsRef.current?.children  || [])
       const features = Array.from(featuresRef.current?.children || [])
 
-      // ── Initial states ───────────────────────────────────────
-      // BG: clipped to a point + invisible — GSAP owns both
+      // ── Initial states ──────────────────────────────────────
       gsap.set(bg,       { clipPath: 'circle(0% at 50% 50%)', opacity: 0 })
-      gsap.set(glow,     { scale: 0.3,  opacity: 0 })
-      gsap.set(badge,    { y: 40,  opacity: 0, scale: 0.85 })
-      gsap.set(words,    { y: 90,  opacity: 0, rotationX: -45, transformOrigin: 'center bottom' })
-      gsap.set(para,     { y: 30,  opacity: 0, filter: 'blur(12px)' })
-      gsap.set(buttons,  { y: 50,  opacity: 0, scale: 0.88 })
-      gsap.set(features, { y: 25,  opacity: 0, scale: 0.75 })
+      gsap.set(glow,     { scale: 0.2, opacity: 0 })
+      gsap.set(badge,    { y: 30,  opacity: 0, scale: 0.9 })
+      gsap.set(words,    { y: 80,  opacity: 0, rotationX: -40, transformOrigin: 'center bottom' })
+      gsap.set(para,     { y: 25,  opacity: 0, filter: 'blur(10px)' })
+      gsap.set(buttons,  { y: 40,  opacity: 0, scale: 0.9 })
+      gsap.set(features, { y: 20,  opacity: 0, scale: 0.8 })
 
-      // ── Main reveal timeline — scrubbed to scroll ────────────
-      // FIX: start earlier ('top center') and end at 'center center'
-      // so the full animation completes while the section is still
-      // visible — nothing gets cut off mid-expand.
+      // ── Single scroll-scrubbed timeline ────────────────────
+      // Phase 1 (0 → 0.6):  text arrives
+      // Phase 2 (0.6 → 1.0): bg explodes in behind it
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: section,
-          start:   'top center',    // animation begins when section top hits viewport center
-          end:     'center center', // animation finishes when section center hits viewport center
-          scrub:   1,
+          start:   'top center',
+          end:     'center center',
+          scrub:   2,
         },
       })
 
-      // BG circle expands AND fades in together
-      tl.to(bg, {
-        clipPath: 'circle(150% at 50% 50%)',
-        opacity:  0.4,
-        duration: 1,
-        ease:     'power2.out',
-      }, 0)
+      // ── PHASE 1 — TEXT FIRST ────────────────────────────────
 
-      // Glow blooms with the BG
-      tl.to(glow, {
-        scale:    1.15,
-        opacity:  0.4,
-        duration: 1,
-        ease:     'power2.out',
-      }, 0)
-
-      // Badge bounces in
+      // Badge
       tl.to(badge, {
         y: 0, opacity: 1, scale: 1,
-        duration: 0.5, ease: 'back.out(1.5)',
-      }, 0.4)
+        duration: 0.4, ease: 'back.out(1.4)',
+      }, 0)
 
-      // Words cascade with 3-D perspective
+      // Words cascade in — 3D flip
       tl.to(words, {
         y: 0, opacity: 1, rotationX: 0,
-        duration: 0.5, ease: 'power3.out',
-        stagger: { amount: 0.35, from: 'start' },
-      }, 0.55)
+        duration: 0.45, ease: 'power3.out',
+        stagger: { amount: 0.3, from: 'start' },
+      }, 0.1)
 
-      // Paragraph blur-dissolve
+      // Paragraph dissolve
       tl.to(para, {
-        y: 0, opacity: 0.5, filter: 'blur(0px)',
-        duration: 0.45, ease: 'power2.out',
-      }, 0.8)
+        y: 0, opacity: 0.55, filter: 'blur(0px)',
+        duration: 0.4, ease: 'power2.out',
+      }, 0.38)
 
-      // Buttons bounce in
+      // Buttons
       tl.to(buttons, {
         y: 0, opacity: 1, scale: 1,
-        duration: 0.4, ease: 'back.out(1.3)',
-        stagger: 0.1,
-      }, 0.95)
+        duration: 0.35, ease: 'back.out(1.3)',
+        stagger: 0.08,
+      }, 0.5)
 
-      // Feature tags pop in
+      // Feature tags
       tl.to(features, {
-        y: 0, opacity: 0.4, scale: 1,
-        duration: 0.35, ease: 'back.out(1.8)',
-        stagger: 0.07,
-      }, 1.15)
+        y: 0, opacity: 0.45, scale: 1,
+        duration: 0.3, ease: 'back.out(1.6)',
+        stagger: 0.06,
+      }, 0.62)
 
-      // ── Ambient animations (independent of scroll) ───────────
-      // Continuous glow float
+      // ── PHASE 2 — BG EXPLOSION AFTER TEXT ──────────────────
+
+      // BG circle blasts open
+      tl.to(bg, {
+        clipPath: 'circle(150% at 50% 50%)',
+        opacity:  0.45,
+        duration: 0.6,
+        ease:     'power4.out',
+      }, 0.68)   // ← starts after text is settled
+
+      // Glow blooms with the explosion
+      tl.to(glow, {
+        scale:   1.2,
+        opacity: 0.5,
+        duration: 0.6,
+        ease:    'power3.out',
+      }, 0.68)
+
+      // ── AMBIENT — runs after scroll animation completes ─────
+
+      // Glow float
       gsap.to(glow, {
-        y:        -30,
-        scale:    1.12,
+        y:        -28,
+        scale:    1.1,
         duration: 4.5,
+        ease:     'sine.inOut',
+        repeat:   -1,
+        yoyo:     true,
+        delay:    2.5,
+      })
+
+      // Glow pulse
+      gsap.to(glow, {
+        opacity:  0.28,
+        duration: 3,
         ease:     'sine.inOut',
         repeat:   -1,
         yoyo:     true,
         delay:    3,
       })
 
-      // Subtle glow pulse
+      // ── PARALLAX — glow drifts on scroll ───────────────────
       gsap.to(glow, {
-        opacity:  0.35,
-        duration: 2.8,
-        ease:     'sine.inOut',
-        repeat:   -1,
-        yoyo:     true,
-        delay:    3.5,
-      })
-
-      // ── Parallax drift on scroll ─────────────────────────────
-      // FIX: removed bg parallax — it was calling gsap.to(bg, …)
-      // with overwrite:'auto' which stomped on the clipPath expansion
-      // and froze the circle at whatever size it had reached.
-      // Only glow gets the parallax drift now.
-      ScrollTrigger.create({
-        trigger: section,
-        start:   'top bottom',
-        end:     'bottom top',
-        scrub:   2.5,
-        onUpdate: (self) => {
-          gsap.to(glow, {
-            y:         self.progress * 50,
-            ease:      'none',
-            overwrite: 'auto',
-          })
-        },
+        y: 100,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: section,
+          start:   'top bottom',
+          end:     'bottom top',
+          scrub:   2.5,
+        }
       })
 
     }, section)
@@ -159,20 +155,37 @@ function CTASection() {
   return (
     <section
       ref={sectionRef}
-      className="relative min-h-screen w-full py-20 md:py-32 overflow-hidden bg-black"
+      data-cta-section
+      className="relative min-h-screen w-full py-20 md:py-32 pb-32 md:pb-48 overflow-hidden bg-black"
       style={{ perspective: '1200px' }}
     >
-      {/* BG image layer — opacity and clipPath fully owned by GSAP */}
+      {/* BG image — explosion layer, starts invisible */}
       <div
         ref={bgLayerRef}
-        className="absolute inset-0 will-change-transform pointer-events-none"
+        className="absolute inset-0 pointer-events-none"
         style={{
           backgroundImage:    `url(${bg1})`,
           backgroundSize:     'cover',
           backgroundPosition: 'center',
           backgroundRepeat:   'no-repeat',
-          transformOrigin:    'center center',
-          // ✅ No inline opacity — GSAP controls it
+          willChange:         'clip-path, opacity',
+        }}
+      />
+
+      {/* Bottom fade & blur mask to smooth transition into Testimonials */}
+      <div 
+        className="absolute bottom-0 left-0 w-full h-48 pointer-events-none z-10"
+        style={{
+          background: 'linear-gradient(to bottom, transparent, #000)',
+        }}
+      />
+      <div 
+        className="absolute bottom-0 left-0 w-full h-48 pointer-events-none z-10"
+        style={{
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          maskImage: 'linear-gradient(to bottom, transparent, black)',
+          WebkitMaskImage: 'linear-gradient(to bottom, transparent, black)',
         }}
       />
 
@@ -181,7 +194,7 @@ function CTASection() {
         ref={glowRef}
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] md:w-[1000px] md:h-[1000px] rounded-full pointer-events-none"
         style={{
-          background: 'radial-gradient(circle, rgba(200,255,0,0.18) 0%, rgba(200,255,0,0.04) 55%, transparent 75%)',
+          background: 'radial-gradient(circle, rgba(200,255,0,0.2) 0%, rgba(200,255,0,0.05) 55%, transparent 75%)',
           filter:     'blur(72px)',
         }}
       />
@@ -189,11 +202,11 @@ function CTASection() {
       <div className="relative z-10 max-w-4xl mx-auto px-4 md:px-8">
         <div className="text-center">
 
+
           {/* Badge */}
           <div
             ref={badgeRef}
             className="inline-flex items-center gap-2 px-4 py-2 mb-8 rounded-full border border-white/10"
-            style={{ transformStyle: 'preserve-3d' }}
           >
             <Sparkles size={16} className="text-[#c8ff00]" />
             <span className="text-white/45 text-sm font-medium">
@@ -201,7 +214,7 @@ function CTASection() {
             </span>
           </div>
 
-          {/* Heading — word-by-word reveal */}
+          {/* Heading */}
           <h2
             ref={headingRef}
             className="text-4xl md:text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight"
@@ -249,7 +262,7 @@ function CTASection() {
           {/* Feature tags */}
           <div
             ref={featuresRef}
-            className="mt-12 flex flex-wrap items-center justify-center gap-8 text-white"
+            className="mt-12 flex flex-wrap items-center justify-center gap-8 text-white pb-8"
           >
             <div className="flex items-center gap-2">
               <Zap size={18} className="text-[#c8ff00]" />
@@ -271,4 +284,4 @@ function CTASection() {
   )
 }
 
-export default CTASection       
+export default CTASection

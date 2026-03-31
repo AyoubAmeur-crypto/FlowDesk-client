@@ -6,7 +6,7 @@ import cursorImage from '../../assets/cursor.png'
 
 gsap.registerPlugin(ScrollTrigger)
 
-export function Banner4() {
+function Banner4() {
   const videoRef = useRef(null)
   const cursorRef = useRef(null)
   const cursorInnerRef = useRef(null)
@@ -354,3 +354,5 @@ export function Banner4() {
     </div>
   )
 }
+
+export default Banner4

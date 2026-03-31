@@ -59,6 +59,7 @@ function NavBar() {
           width: '95%',
           boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.15)',
           border: '1px solid rgba(255, 255, 255, 0.1)',
+          color: '#fff',
           duration: 0.2,
           ease: 'power2.out'
         })
@@ -79,11 +80,40 @@ function NavBar() {
           width: '100%',
           boxShadow: 'none',
           border: 'none',
+          color: '#fff',
           duration: 0.2,
           ease: 'power2.out'
         })
       }
     })
+
+    // When on CTA section, keep navbar transparent with dark styling
+    const ctaSection = document.querySelector('[data-cta-section]')
+    if (ctaSection) {
+      ScrollTrigger.create({
+        trigger: ctaSection,
+        start: 'top center',
+        end: 'bottom center',
+        onEnter: () => {
+          gsap.to(nav, {
+            backgroundColor: 'transparent',
+            backdropFilter: 'blur(0px)',
+            color: '#fff',
+            duration: 0.3,
+            ease: 'power2.out'
+          })
+        },
+        onLeaveBack: () => {
+          gsap.to(nav, {
+            backgroundColor: '#000',
+            backdropFilter: 'blur(20px)',
+            color: '#fff',
+            duration: 0.3,
+            ease: 'power2.out'
+          })
+        }
+      })
+    }
   }, [])
 
   const features = [
@@ -96,6 +126,8 @@ function NavBar() {
   return (
     <>
       <nav
+        data-navbar                          // ✅ add this one attribute
+
         ref={navRef}
         className='fixed top-0 left-0 right-0 z-50 flex justify-between items-center px-4 md:px-8 py-4 transition-all duration-300 rounded-[20px] mx-auto'
         style={{ willChange: 'transform, background-color' }}

@@ -31,8 +31,7 @@ function App() {
     <BrowserRouter>
       <Routes>
 
-        {// temporary code// *
-        }
+       
         <Route path='/' element={<LandingPage />} />
 
         <Route path='/admin' element={<ProtectedRoute><AdminPanel /></ProtectedRoute>}>

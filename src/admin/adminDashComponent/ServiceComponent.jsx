@@ -176,8 +176,8 @@ function ServiceComponent() {
 
   return (
     <>
-      <div className="flex flex-col min-w-full overflow-x-auto px-4">
-        <div className="flex flex-row items-center justify-between px-10 pt-10 custom-scrollbar">
+      <div className="flex flex-col min-w-full overflow-x-auto ">
+        <div className="flex flex-row items-center justify-between px-10 custom-scrollbar">
           <h1 className="text-2xl text-black">Services</h1>
           <button
             className="px-2 py-1 text-white bg-black text-sm rounded-lg hover:text-white/90 cursor-pointer"
@@ -240,7 +240,7 @@ function ServiceComponent() {
           </div>
         </div>
 
-        <div className="px-3 lg:px-10 pt-5 custom-scrollbar">
+        <div className="px-3 lg:px-10 pt-3 custom-scrollbar">
           {isPending ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {[...Array(6)].map((_, i) => (
@@ -316,7 +316,7 @@ function ServiceComponent() {
                       {service.serviceDescription}
                     </p>
 
-                    <div className="flex items-center justify-between mt-3">
+                    <div className="flex items-center justify-between mt-1">
                       <span className="text-sm font-bold text-gray-900">
                         ${Number(service.servicePrice).toFixed(2)}
                       </span>

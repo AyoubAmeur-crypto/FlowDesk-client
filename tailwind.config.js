@@ -1,7 +1,9 @@
+const {heroui} = require('@heroui/theme');
 export default {
   content: [
     "./index.html",
     "./src/**/*.{js,jsx}",
+    "./node_modules/@heroui/theme/dist/components/(date-picker|button|ripple|spinner|calendar|date-input|form|popover).js"
   ],
   theme: {
     extend: {
@@ -25,7 +27,5 @@ export default {
       },
     },
   },
-  plugins: [
-    require('tailwind-scrollbar'),
-  ],
+  plugins: [require('tailwind-scrollbar'),heroui()],
 }

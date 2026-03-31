@@ -63,7 +63,7 @@ function CategoryCompnent() {
     <>
     
      <div className="flex flex-col min-w-full overflow-x-auto">
-      <div className="flex flex-row items-center justify-between  px-10 pt-10 ">
+      <div className="flex flex-row items-center justify-between  px-8 ">
         <h1 className=' text-2xl  text-black'>Categories</h1>
         <button className='px-2 py-1 text-white bg-black text-sm rounded-lg hover:text-white/90 cursor-pointer'
          onClick={()=>{setAddCategory(true)}}
