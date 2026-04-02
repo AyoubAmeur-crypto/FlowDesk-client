@@ -38,8 +38,9 @@ function NavBar() {
 
   useGSAP(() => {
     const nav = navRef.current
+    if (!nav) return
 
-    ScrollTrigger.create({
+    const st = ScrollTrigger.create({
       trigger: document.body,
       start: 'top -10px',
       end: 'bottom top',
@@ -86,6 +87,8 @@ function NavBar() {
         })
       }
     })
+
+    return () => st.kill()
   }, [])
 
   const features = [

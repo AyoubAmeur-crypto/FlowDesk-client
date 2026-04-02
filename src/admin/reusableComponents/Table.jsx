@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, memo, useCallback } from 'react';
 import { RiArrowLeftSLine, RiArrowRightSLine, RiEditLine, RiDeleteBinLine } from '@remixicon/react';
 import {
   flexRender,
@@ -62,6 +62,57 @@ const Button = ({ onClick, disabled, children }) => {
   );
 };
 
+const MemoizedTableRow = memo(function MemoizedTableRow({ row, isHovered, onHover, onEdit, onDelete }) {
+  return (
+    <TableRow
+      key={row.id}
+      onMouseEnter={() => onHover(row.id)}
+      onMouseLeave={() => onHover(null)}
+      className="transition-colors hover:bg-gray-50"
+    >
+      {row.getVisibleCells().map((cell, index) => {
+        const isLastColumn = index === row.getVisibleCells().length - 1
+
+        return (
+          <TableCell
+            key={cell.id}
+            className={clsx(cell.column.columnDef.meta?.align, "relative")}
+          >
+            {isLastColumn ? (
+              <div className="flex items-center justify-end min-w-[120px]">
+                {isHovered ? (
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => onEdit(row.original)}
+                      className="rounded text-gray-600 hover:text-blue-600 transition-all cursor-pointer"
+                      title="Edit"
+                    >
+                      <RiEditLine className="w-5 h-4" />
+                    </button>
+                    <button
+                      onClick={() => onDelete(row.original)}
+                      className="rounded text-gray-600 hover:text-red-600 transition-all cursor-pointer"
+                      title="Delete"
+                    >
+                      <RiDeleteBinLine className="w-5 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <span className="text-sm text-gray-600">
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </span>
+                )}
+              </div>
+            ) : (
+              flexRender(cell.column.columnDef.cell, cell.getContext())
+            )}
+          </TableCell>
+        )
+      })}
+    </TableRow>
+  )
+})
+
 function TableDemo() {
   const pageSize = 6;
 
@@ -92,6 +143,16 @@ function TableDemo() {
 
   const [page, setPage] = useState(0);
   const [hoveredRowId, setHoveredRowId] = useState(null);
+
+  const handleRowHover = useCallback((rowId) => setHoveredRowId(rowId), [])
+  const handleEdit = useCallback((category) => {
+    setUpdatedCategory(category)
+    setUpdatedModal(true)
+  }, [])
+  const handleDelete = useCallback((category) => {
+    setDeletedCategory(category)
+    setSure(true)
+  }, [])
 
 
   const [{data,error,isPending,refetch}] = useSuspenseQueries({
@@ -206,61 +267,14 @@ const deleteMutationCategory = useMutation({
           </TableHead>
           <TableBody>
             {table.getRowModel().rows.map((row) => (
-              <TableRow
+              <MemoizedTableRow
                 key={row.id}
-                onMouseEnter={() => setHoveredRowId(row.id)}
-                onMouseLeave={() => setHoveredRowId(null)}
-                className="transition-colors hover:bg-gray-50"
-              >
-                {row.getVisibleCells().map((cell, index) => {
-                  // Check if this is the last edited column (last cell)
-                  const isLastColumn = index === row.getVisibleCells().length - 1;
-
-                  return (
-                    <TableCell
-                      key={cell.id}
-                      className={clsx(cell.column.columnDef.meta?.align, "relative")}
-                    >
-                      {isLastColumn ? (
-                        <div className="flex items-center justify-end min-w-[120px]">
-                          {hoveredRowId === row.id ? (
-                            <div className="flex items-center gap-1">
-                              <button
-                                onClick={() => {
-                                  setUpdatedCategory(row.original)
-                                  setUpdatedModal(true)
-                                }}
-                                className=" rounded text-gray-600 hover:text-blue-600  transition-all cursor-pointer"
-                                title="Edit"
-                              >
-                                <RiEditLine className="w-5 h-4" />
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setDeletedCategory(row.original);
-                                  setSure(true)
-
-
-                                }}
-                                className=" rounded text-gray-600 hover:text-red-600  transition-all cursor-pointer"
-                                title="Delete"
-                              >
-                                <RiDeleteBinLine className="w-5 h-4" />
-                              </button>
-                            </div>
-                          ) : (
-                            <span className="text-sm text-gray-600">
-                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                            </span>
-                          )}
-                        </div>
-                      ) : (
-                        flexRender(cell.column.columnDef.cell, cell.getContext())
-                      )}
-                    </TableCell>
-                  );
-                })}
-              </TableRow>
+                row={row}
+                isHovered={hoveredRowId === row.id}
+                onHover={handleRowHover}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
             ))}
           </TableBody>
         </Table>
