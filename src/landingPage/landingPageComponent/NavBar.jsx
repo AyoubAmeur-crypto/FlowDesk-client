@@ -86,34 +86,6 @@ function NavBar() {
         })
       }
     })
-
-    // When on CTA section, keep navbar transparent with dark styling
-    const ctaSection = document.querySelector('[data-cta-section]')
-    if (ctaSection) {
-      ScrollTrigger.create({
-        trigger: ctaSection,
-        start: 'top center',
-        end: 'bottom center',
-        onEnter: () => {
-          gsap.to(nav, {
-            backgroundColor: 'transparent',
-            backdropFilter: 'blur(0px)',
-            color: '#fff',
-            duration: 0.3,
-            ease: 'power2.out'
-          })
-        },
-        onLeaveBack: () => {
-          gsap.to(nav, {
-            backgroundColor: '#000',
-            backdropFilter: 'blur(20px)',
-            color: '#fff',
-            duration: 0.3,
-            ease: 'power2.out'
-          })
-        }
-      })
-    }
   }, [])
 
   const features = [

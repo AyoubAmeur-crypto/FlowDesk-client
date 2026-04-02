@@ -30,17 +30,14 @@ function ProjectComponent() {
     queries:[getProjectAcceptedQueryOption(page)]
   })
 
-  // Safe fallback if data isn't ready
   const projectsData = data || { allRequestedProject: [], pageNumber: 0, pageSize: 6, totalElements: 0, totalPage: 1, lastPage: true };
 
-  // Map backend schema to frontend Card schema
   const mappedProjects = (projectsData.allRequestedProject || []).map(p => ({
     id: p.projectId,
     name: p.projectName,
     description: p.projectDescription || "No description provided",
     status: p.projectStatus,
     userEmail: p.userEmail,
-    // Provide safe defaults for mock UI properties that might be missing
     progress: p.progress || 0,
     dueDate: p.dueDate || null,
     priority: p.priority || 'Medium',
@@ -49,7 +46,6 @@ function ProjectComponent() {
   }))
 
   const handleUpdateProject = (updatedProject) => {
-    // Optimistic UI updates can be handled here or via Tanstack mutation
     setSelectedProject((prev) => (prev?.id === updatedProject.id ? updatedProject : prev))
     refetch()
   }

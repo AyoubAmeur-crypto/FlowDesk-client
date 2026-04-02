@@ -66,12 +66,6 @@ function Navbar() {
 
     const isDashboardPage = location.pathname.startsWith('/admin/dashboard')
 
-    useEffect(() => {
-        if (isDashboardPage && isMenuOpen) {
-            setIsDashboardOpen(true)
-        }
-    }, [isDashboardPage, isMenuOpen])
-
     return (
         <div className="w-screen fixed top-0 left-0 z-50 flex justify-center border-b border-gray-300/40 bg-white backdrop-blur-sm">
             <div className="w-full max-w-[1362px] flex-between px-6 lg:px-30">
@@ -79,13 +73,13 @@ function Navbar() {
                     <img src={logo} className='w-[110px] h-[30px]' alt="Logo" />
                     
                     <div className="hidden lg:flex gap-[34px]">
-                        <Link to='/admin/dashboard/categories' className={`cursor-pointer pb-[33px] -mb-[31px] border-b-2 transition-colors ${isDashboardPage ? 'border-black/70 text-black/70' : 'border-transparent hover:text-black/70 hover:border-black/70'}`}>
+                        <Link to='/admin/dashboard/categories' className="cursor-pointer pb-[33px] -mb-[31px] border-b-2 border-transparent hover:text-black/70 transition-colors">
                             Dashboard
                         </Link>
-                        <Link to='/admin/marketplace' className={`cursor-pointer pb-[33px] -mb-[31px] border-b-2 transition-colors ${isActive('/admin/marketplace') ? 'border-black/70 text-black/70' : 'border-transparent hover:text-black/70 hover:border-black/70'}`}>
+                        <Link to='/admin/marketplace' className="cursor-pointer pb-[33px] -mb-[31px] border-b-2 border-transparent hover:text-black/70 transition-colors">
                             Marketplace
                         </Link>
-                        <Link to='/admin/blog' className={`cursor-pointer pb-[33px] -mb-[31px] border-b-2 transition-colors ${isActive('/admin/blog') ? 'border-black/70 text-black/70' : 'border-transparent hover:text-black/70 hover:border-black/70'}`}>
+                        <Link to='/admin/blog' className="cursor-pointer pb-[33px] -mb-[31px] border-b-2 border-transparent hover:text-black/70 transition-colors">
                             Blog
                         </Link>
                     </div>
@@ -133,7 +127,7 @@ function Navbar() {
                         <div>
                             <button 
                                 onClick={() => setIsDashboardOpen(!isDashboardOpen)}
-                                className={`flex items-center justify-between w-full text-left py-2 transition-colors ${isDashboardPage ? 'text-black/70 font-medium' : 'hover:text-black/70'}`}
+                                className="flex items-center justify-between w-full text-left py-2 transition-colors hover:text-black/70"
                             >
                                 <span>Dashboard</span>
                                 {isDashboardOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
@@ -163,14 +157,14 @@ function Navbar() {
                         <Link 
                             onClick={()=>{setIsMenuOpen(false)}} 
                             to='/admin/marketplace' 
-                            className={`text-left py-2 transition-colors ${isActive('/admin/marketplace') ? 'text-black/70 font-medium' : 'hover:text-black/70'}`}
+                            className="text-left py-2 transition-colors hover:text-black/70"
                         >
                             Marketplace
                         </Link>
                         <Link 
                             onClick={()=>{setIsMenuOpen(false)}} 
                             to='/admin/blog' 
-                            className={`text-left py-2 transition-colors ${isActive('/admin/blog') ? 'text-black/70 font-medium' : 'hover:text-black/70'}`}
+                            className="text-left py-2 transition-colors hover:text-black/70"
                         >
                             Blog
                         </Link>

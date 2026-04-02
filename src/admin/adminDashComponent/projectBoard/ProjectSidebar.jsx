@@ -14,13 +14,12 @@ import { DatePicker } from '@heroui/date-picker'
 import { parseDate } from '@internationalized/date'
 import AvatarGroup from './AvatarGroup'
 import CommentsPanel from './CommentsPanel'
-import { initialColumns, initialTasks } from './data'
-import DroppableColumn from './kanban/DroppableColumn'
 import DragOverlayTaskCard from './kanban/DragOverlayTaskCard'
 import AddColumnModal from './modals/AddColumnModal'
 import AddTaskModal from './modals/AddTaskModal'
 import TaskDetailsModal from './modals/TaskDetailsModal'
 import UnsavedChangesModal from './modals/UnsavedChangesModal'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
 const STATUS_OPTIONS = ['Todo', 'In Progress', 'Done', 'Blocked']
 const MEMBER_COLOR_PALETTE = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#EC4899', '#14B8A6']
@@ -32,15 +31,24 @@ const getInitials = (fullName) => {
 }
 
 function ProjectSidebar({ isOpen, onClose, project, onUpdateProject }) {
-  const [columns, setColumns] = useState(initialColumns)
-  const [tasks, setTasks] = useState(initialTasks)
+  // --- FETCHING PREPARATION ---
+  // const queryClient = useQueryClient();
+  // const { data: kanbanData, isLoading: isLoadingKanban } = useQuery({
+  //   queryKey: ['projectKanban', project?.id],
+  //   queryFn: () => fetchKanbanData(project.id), // Fetch { columns: [], tasks: [] }
+  //   enabled: !!project?.id
+  // })
+
+  // Initialize with empty arrays instead of hardcoded data
+  const [columns, setColumns] = useState([]) 
+  const [tasks, setTasks] = useState([])
   const [activeTask, setActiveTask] = useState(null)
   const [showAddColumn, setShowAddColumn] = useState(false)
   const [showAddTask, setShowAddTask] = useState(false)
   const [selectedColumnForTask, setSelectedColumnForTask] = useState(null)
   const [selectedTask, setSelectedTask] = useState(null)
   const [newColumnId, setNewColumnId] = useState(null)
-  const [taskComments, setTaskComments] = useState({})
+  const [taskComments, setTaskComments] = useState({}) // Alternatively, fetch comments per task
   const [draftProject, setDraftProject] = useState(project)
   const [isEditingTitle, setIsEditingTitle] = useState(false)
   const [isEditingDescription, setIsEditingDescription] = useState(false)
@@ -73,6 +81,14 @@ function ProjectSidebar({ isOpen, onClose, project, onUpdateProject }) {
     setShowMembersPopover(false)
     setShowStatusMenu(false)
   }, [project])
+
+  // Sync fetched data to state when available
+  // useEffect(() => {
+  //   if (kanbanData) {
+  //     setColumns(kanbanData.columns || [])
+  //     setTasks(kanbanData.tasks || [])
+  //   }
+  // }, [kanbanData])
 
   const handleClose = () => {
     if (hasChanges) {
@@ -174,6 +190,10 @@ function ProjectSidebar({ isOpen, onClose, project, onUpdateProject }) {
           : task
       )
     )
+
+    // TODO: Backend Sync
+    // Trigger mutation to update task's column ID in database
+    // updateTaskColumnMutation.mutate({ taskId: activeId, newColumnId: overColumnId });
   }
 
   const handleDragEnd = (event) => {
@@ -199,13 +219,20 @@ function ProjectSidebar({ isOpen, onClose, project, onUpdateProject }) {
         const nonColumnTasks = prev.filter((task) => task.columnId !== draggedTask.columnId)
         return [...nonColumnTasks, ...reordered]
       })
+
+      // TODO: Backend Sync
+      // Sync the new sorting order to the backend
+      // updateTaskOrderMutation.mutate({ 
+      //   columnId: draggedTask.columnId, 
+      //   orderedTaskIds: reordered.map(t => t.id) 
+      // });
     }
 
     setActiveTask(null)
   }
 
   const handleAddColumn = (title) => {
-    const id = `col-${Date.now()}`
+    const id = `col-${Date.now()}` // Temporary ID for optimistic UI
     const newColumn = {
       id,
       title,
@@ -215,21 +242,30 @@ function ProjectSidebar({ isOpen, onClose, project, onUpdateProject }) {
     setColumns((prev) => [...prev, newColumn])
     setNewColumnId(id)
     window.setTimeout(() => setNewColumnId(null), 280)
+
+    // TODO: Backend Sync
+    // createColumnMutation.mutate({ projectId: project.id, title, color: newColumn.color })
   }
 
   const handleDeleteColumn = (columnId) => {
     setColumns((prev) => prev.filter((column) => column.id !== columnId))
     setTasks((prev) => prev.filter((task) => task.columnId !== columnId))
+    
+    // TODO: Backend Sync
+    // deleteColumnMutation.mutate(columnId)
   }
 
   const handleAddTask = (taskData) => {
     const newTask = {
-      id: `task-${Date.now()}`,
+      id: `task-${Date.now()}`, // Temporary ID
       ...taskData,
       avatarColors: ['#6B7280'],
       avatarNames: ['ME'],
     }
     setTasks((prev) => [...prev, newTask])
+    
+    // TODO: Backend Sync
+    // createTaskMutation.mutate({ projectId: project.id, ...newTask })
   }
 
   const handleDeleteTask = (taskId) => {
@@ -242,6 +278,9 @@ function ProjectSidebar({ isOpen, onClose, project, onUpdateProject }) {
     if (selectedTask?.id === taskId) {
       setSelectedTask(null)
     }
+
+    // TODO: Backend Sync
+    // deleteTaskMutation.mutate(taskId)
   }
 
   const handleAddComment = (taskId, text) => {
@@ -260,6 +299,9 @@ function ProjectSidebar({ isOpen, onClose, project, onUpdateProject }) {
       ...prev,
       [taskId]: [...(prev[taskId] || []), comment],
     }))
+
+    // TODO: Backend Sync
+    // addTaskCommentMutation.mutate({ taskId, text })
   }
 
   const handleAddProjectComment = (commentData) => {
@@ -608,6 +650,14 @@ function ProjectSidebar({ isOpen, onClose, project, onUpdateProject }) {
             {/* Content Area */}
             {activeTab === 'board' ? (
               <div className="flex-1 overflow-x-auto p-4 bg-white">
+                {/* 
+                // Enable this loading spinner when fetching is implemented
+                {isLoadingKanban ? (
+                  <div className="h-full flex items-center justify-center">
+                    <div className="w-8 h-8 border-4 border-gray-900 border-t-transparent rounded-full animate-spin" />
+                  </div>
+                ) : ( 
+                */}
                 <div className="flex gap-3 h-full min-w-max">
                   {columns.map((column) => (
                     <DroppableColumn
@@ -638,6 +688,7 @@ function ProjectSidebar({ isOpen, onClose, project, onUpdateProject }) {
                     </button>
                   </div>
                 </div>
+                {/* )} */}
               </div>
             ) : (
               <CommentsPanel

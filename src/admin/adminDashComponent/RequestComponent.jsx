@@ -20,7 +20,7 @@ function RequestComponent() {
         <>
         
          <div className="flex flex-col min-w-full overflow-x-auto">
-         <div className="flex flex-row items-center justify-between  px-10 pt-10 ">
+         <div className="flex flex-row items-center justify-between  px-10  ">
         <h1 className=' text-2xl  text-black'>Requested Projects</h1>
        
       </div>

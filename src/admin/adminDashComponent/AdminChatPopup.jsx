@@ -76,7 +76,7 @@ export default function AdminChatPopup() {
             style={{ height: 'min(550px, 75vh)' }}
           >
             {/* Header */}
-            <div className="bg-[#111827] text-white p-4 flex justify-between items-center shadow-sm">
+            <div className="bg-black text-white p-4 flex justify-between items-center shadow-sm">
               <div className="flex items-center gap-3">
                 {activeChat ? (
                   <>
