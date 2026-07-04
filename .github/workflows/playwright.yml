@@ -16,7 +16,10 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: AyoubAmeur-crypto/FlowDeskSpringBootBackend
-        path: ../FlowDesk
+        path: FlowDesk-backend
+
+    - name: Prepare Backend for Docker Compose
+      run: mv FlowDesk-backend ../FlowDesk
 
     - uses: actions/setup-node@v4
       with:
