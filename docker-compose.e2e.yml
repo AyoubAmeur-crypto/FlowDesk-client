@@ -34,7 +34,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 0000
+      POSTGRES_PASSWORD: "0000"
       POSTGRES_DB: FlowDesk
     ports:
       - "${E2E_DB_PORT:-5434}:5432"
@@ -70,7 +70,7 @@ services:
       # Uses the service name 'db' as hostname inside Docker network
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/FlowDesk
       SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: 0000
+      SPRING_DATASOURCE_PASSWORD: "0000"
 
       # ── JPA / Hibernate ────────────────────────────────────
       SPRING_JPA_HIBERNATE_DDL_AUTO: create
@@ -110,7 +110,7 @@ services:
     healthcheck:
       # Spring Boot returns something on /login even before full startup,
       # but we just need the port to be accepting connections.
-      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/login 2>/dev/null || exit 1" ]
+      test: [ "CMD-SHELL", "wget --server-response --spider --tries=1 http://localhost:8080/login 2>&1 | grep -q 'HTTP/'" ]
       interval: 10s
       timeout: 5s
       retries: 20
