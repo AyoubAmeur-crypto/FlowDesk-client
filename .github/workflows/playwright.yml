@@ -21,9 +21,9 @@ jobs:
     - name: Prepare Backend for Docker Compose
       run: mv FlowDesk-backend ../FlowDesk
 
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v6
       with:
-        node-version: lts/*
+        node-version: 24
     - name: Install dependencies
       run: npm install -g pnpm@9 && pnpm install
     - name: Install Playwright Browsers
