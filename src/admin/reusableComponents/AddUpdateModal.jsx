@@ -56,6 +56,8 @@ const SlideInModal = ({
       <div className="fixed inset-y-0 right-0 z-50 w-full sm:w-2/3 md:w-1/2 lg:w-1/3 xl:w-1/4 animate-slide-in">
         <div className="h-full bg-white shadow-2xl flex flex-col">
           {/* Header */}
+          {/* Header */}
+          {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
             <button
