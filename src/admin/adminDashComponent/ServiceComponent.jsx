@@ -170,6 +170,22 @@ function ServiceComponent() {
     handleEditClick(service);
   }
 
+  const handleCreateService = (formData) => {
+    const duplicateService = data.services?.some(
+      (service) =>
+        service.serviceName.trim().toLowerCase() ===
+        formData.serviceName?.trim().toLowerCase()
+    );
+
+    if (duplicateService) {
+      setFormError(`Service name "${formData.serviceName}" already exists.`);
+      return;
+    }
+
+    setFormError('');
+    handleCreateServiceMutation.mutate(formData);
+  }
+
   const clearSearch = () => {
     setSearchQuery('');
   }
@@ -374,12 +390,12 @@ function ServiceComponent() {
           setFormError('')
         }}
         onSubmit={(formData)=>{
-          handleCreateServiceMutation.mutate(formData)
+          handleCreateService(formData)
         }}
         isLoading={handleCreateServiceMutation.isPending}
         title="Add Service"
         submitText="Save"
-        errors={handleCreateServiceMutation.error?.message ?? ''}
+        errors={formError || handleCreateServiceMutation.error?.message || ''}
         categories={categoryResponse.data}
       />
 

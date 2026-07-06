@@ -50,6 +50,7 @@ const SlideInModal = ({
       <div 
         className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 animate-fade-in"
         onClick={onClose}
+        data-testid="modal"
       />
       
       <div className="fixed inset-y-0 right-0 z-50 w-full sm:w-2/3 md:w-1/2 lg:w-1/3 xl:w-1/4 animate-slide-in">

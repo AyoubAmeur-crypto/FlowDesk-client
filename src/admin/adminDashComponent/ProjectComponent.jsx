@@ -32,18 +32,32 @@ function ProjectComponent() {
 
   const projectsData = data || { allRequestedProject: [], pageNumber: 0, pageSize: 6, totalElements: 0, totalPage: 1, lastPage: true };
 
-  const mappedProjects = (projectsData.allRequestedProject || []).map(p => ({
-    id: p.projectId,
-    name: p.projectName,
-    description: p.projectDescription || "No description provided",
-    status: p.projectStatus,
-    userEmail: p.userEmail,
-    progress: p.progress || 0,
-    dueDate: p.dueDate || null,
-    priority: p.priority || 'Medium',
-    tasks: p.tasks || { total: 0, completed: 0 },
-    team: p.team || []
-  }))
+  const mappedProjects = (projectsData.allRequestedProject || []).map(p => {
+    const fallbackDate = new Date();
+    fallbackDate.setDate(fallbackDate.getDate() + 7);
+    const fullName = p.userFirstName && p.userLastName ? `${p.userFirstName} ${p.userLastName}` : 'Unknown User';
+
+    return {
+      id: p.projectId,
+      projectId: p.projectId,
+      name: p.projectName || "Unnamed Project",
+      description: p.projectDescription || "No description provided",
+      status: p.projectStatus || 'Todo',
+      userEmail: p.userEmail,
+      userFirstName: p.userFirstName,
+      userLastName: p.userLastName,
+      serviceName: p.serviceName,
+      price: p.price,
+      // fallback ui properties
+      progress: 0,
+      dueDate: fallbackDate.toISOString().split('T')[0],
+      priority: 'Medium',
+      tasks: { total: 0, completed: 0 },
+      team: [],
+      avatarNames: [fullName],
+      avatarColors: ['#3B82F6']
+    };
+  })
 
   const handleUpdateProject = (updatedProject) => {
     setSelectedProject((prev) => (prev?.id === updatedProject.id ? updatedProject : prev))

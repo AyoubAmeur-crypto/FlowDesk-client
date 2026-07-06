@@ -20,7 +20,7 @@ import {
   TableRow,
 } from '../reusableComponents/ComponenetTable';
 import { deleteCategory, getAllCategories, updateCategory } from '../../api/category';
-import { Loader } from 'lucide-react';
+import { Loader, Search, X } from 'lucide-react';
 import DeleteConfirmationModal from './DeleteConfirmationModal';
 import SlideInModal from './AddUpdateModal';
 import { useMutation, useQueryClient, useSuspenseQueries } from '@tanstack/react-query';
@@ -85,14 +85,14 @@ const MemoizedTableRow = memo(function MemoizedTableRow({ row, isHovered, onHove
                     <button
                       onClick={() => onEdit(row.original)}
                       className="rounded text-gray-600 hover:text-blue-600 transition-all cursor-pointer"
-                      title="Edit"
+                      title="Edit row"
                     >
                       <RiEditLine className="w-5 h-4" />
                     </button>
                     <button
                       onClick={() => onDelete(row.original)}
                       className="rounded text-gray-600 hover:text-red-600 transition-all cursor-pointer"
-                      title="Delete"
+                      title="Delete row"
                     >
                       <RiDeleteBinLine className="w-5 h-4" />
                     </button>
@@ -143,6 +143,7 @@ function TableDemo() {
 
   const [page, setPage] = useState(0);
   const [hoveredRowId, setHoveredRowId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleRowHover = useCallback((rowId) => setHoveredRowId(rowId), [])
   const handleEdit = useCallback((category) => {
@@ -181,8 +182,13 @@ const deleteMutationCategory = useMutation({
 
 
 
+  const categories = data.data.allCategories || [];
+  const filteredCategories = categories.filter((category) =>
+    category.categoryName.toLowerCase().includes(searchQuery.trim().toLowerCase())
+  );
+
   const table = useReactTable({
-    data: data.data.allCategories || [],
+    data: filteredCategories,
     columns: workspacesColumns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -228,7 +234,7 @@ const deleteMutationCategory = useMutation({
 </div>
   );
 
-  if(page === 0 && data.data.allCategories.length===0) return (
+  if(page === 0 && categories.length===0) return (
 
      <div className="flex flex-col items-center justify-center py-24 text-center">
               <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
@@ -244,7 +250,33 @@ const deleteMutationCategory = useMutation({
 
   return (
     <>
+    <div className="relative mb-4">
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+      <input
+        type="text"
+        placeholder="Search categories..."
+        value={searchQuery}
+        onChange={(event) => setSearchQuery(event.target.value)}
+        className="w-full pl-9 pr-9 py-1.5 text-sm border border-gray-200 rounded-md focus:ring-1 focus:ring-black focus:border-black outline-none"
+      />
+      {searchQuery && (
+        <button
+          type="button"
+          onClick={() => setSearchQuery('')}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+        >
+          <X size={16} />
+        </button>
+      )}
+    </div>
     <div className="overflow-x-auto pb-5">
+      {filteredCategories.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <p className="text-gray-500 text-sm">No categories found</p>
+          <p className="text-gray-400 text-xs mt-1">Try adjusting your search</p>
+        </div>
+      ) : (
+      <>
       <TableRoot>
         <Table>
           <TableHead>
@@ -318,6 +350,8 @@ const deleteMutationCategory = useMutation({
           </Button>
         </div>
       </div>
+      </>
+      )}
     </div>
 
      <DeleteConfirmationModal

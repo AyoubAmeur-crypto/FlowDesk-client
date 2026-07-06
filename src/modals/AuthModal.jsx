@@ -301,6 +301,7 @@ function AuthModal({initialMode='login'}) {
                 !signupInfos.phoneNumber
           }
           onClick={isLogin ? handleLoginSubmit : handleSignupSubmit}
+          data-testid="authenticate-button"
           className="inline-flex items-center justify-center gap-2 rounded-md bg-gray-700/80 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-inner shadow-white/10 focus:outline-none hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLogin ? (

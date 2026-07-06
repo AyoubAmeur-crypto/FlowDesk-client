@@ -15,11 +15,12 @@ import { parseDate } from '@internationalized/date'
 import AvatarGroup from './AvatarGroup'
 import CommentsPanel from './CommentsPanel'
 import DragOverlayTaskCard from './kanban/DragOverlayTaskCard'
+import DroppableColumn from './kanban/DroppableColumn'
 import AddColumnModal from './modals/AddColumnModal'
-import AddTaskModal from './modals/AddTaskModal'
 import TaskDetailsModal from './modals/TaskDetailsModal'
 import UnsavedChangesModal from './modals/UnsavedChangesModal'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { fetchKanbanData, createColumn ,createTask,getAllTasks} from '../../../api/task'
 
 const STATUS_OPTIONS = ['Todo', 'In Progress', 'Done', 'Blocked']
 const MEMBER_COLOR_PALETTE = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#EC4899', '#14B8A6']
@@ -31,6 +32,38 @@ const getInitials = (fullName) => {
 }
 
 function ProjectSidebar({ isOpen, onClose, project, onUpdateProject }) {
+
+  const queryClient = useQueryClient();
+
+  const {data,isPending,error,refetch} = useQuery({
+    queryKey:['projectKanban',project?.projectId],
+    queryFn:()=>fetchKanbanData(project.projectId),
+    enabled:!!project?.projectId
+  })
+
+  const {data:taskData,isPending:taskLoading,error:taskError,refetch:taskReload} = useQuery({
+    queryFn: () => getAllTasks(project.projectId),
+    queryKey: ['taskKanban', project.projectId],
+    enabled: !!project?.projectId
+  })
+
+  const createTaskMutation = useMutation({
+    mutationFn: (newTaskPayload) => createTask(newTaskPayload, project.projectId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['taskKanban', project.projectId] })
+    }
+  })
+
+  const createColumnMutation = useMutation({
+    mutationFn: (newColumnPayload) => createColumn(project.projectId, newColumnPayload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projectKanban', project.projectId] })
+    },
+    onError: (err) => {
+      console.error('Failed to create column:', err)
+      queryClient.invalidateQueries({ queryKey: ['projectKanban', project.projectId] })
+    }
+  })
   // --- FETCHING PREPARATION ---
   // const queryClient = useQueryClient();
   // const { data: kanbanData, isLoading: isLoadingKanban } = useQuery({
@@ -44,8 +77,6 @@ function ProjectSidebar({ isOpen, onClose, project, onUpdateProject }) {
   const [tasks, setTasks] = useState([])
   const [activeTask, setActiveTask] = useState(null)
   const [showAddColumn, setShowAddColumn] = useState(false)
-  const [showAddTask, setShowAddTask] = useState(false)
-  const [selectedColumnForTask, setSelectedColumnForTask] = useState(null)
   const [selectedTask, setSelectedTask] = useState(null)
   const [newColumnId, setNewColumnId] = useState(null)
   const [taskComments, setTaskComments] = useState({}) // Alternatively, fetch comments per task
@@ -83,13 +114,18 @@ function ProjectSidebar({ isOpen, onClose, project, onUpdateProject }) {
   }, [project])
 
   // Sync fetched data to state when available
-  // useEffect(() => {
-  //   if (kanbanData) {
-  //     setColumns(kanbanData.columns || [])
-  //     setTasks(kanbanData.tasks || [])
-  //   }
-  // }, [kanbanData])
+  useEffect(() => {
+    if (data) setColumns(Array.isArray(data) ? data : data.columns || [])
+  }, [data])
 
+  useEffect(() => {
+    if (taskData) setTasks(Array.isArray(taskData) ? taskData : taskData.tasks || [])
+  }, [taskData])
+
+  useEffect(()=>{
+    console.log("column of project :",data);
+    console.log("project details",project);
+  },[project, data])
   const handleClose = () => {
     if (hasChanges) {
       setPendingClose(true)
@@ -232,19 +268,27 @@ function ProjectSidebar({ isOpen, onClose, project, onUpdateProject }) {
   }
 
   const handleAddColumn = (title) => {
-    const id = `col-${Date.now()}` // Temporary ID for optimistic UI
-    const newColumn = {
-      id,
+    const tempId = `col-${Date.now()}`
+    const randomColor = MEMBER_COLOR_PALETTE[Math.floor(Math.random() * MEMBER_COLOR_PALETTE.length)]
+    
+    const optimisticColumn = {
+      id: tempId,
       title,
-      color: '#6B7280',
+      color: randomColor,
     }
 
-    setColumns((prev) => [...prev, newColumn])
-    setNewColumnId(id)
+    setColumns((prev) => [...prev, optimisticColumn])
+    setNewColumnId(tempId)
     window.setTimeout(() => setNewColumnId(null), 280)
 
-    // TODO: Backend Sync
-    // createColumnMutation.mutate({ projectId: project.id, title, color: newColumn.color })
+    // Backend Sync (No ID sent, includes random color and projectId)
+    const columnPayload = {
+      title: title,
+      color: randomColor,
+      projectId: project.projectId
+    }
+    
+    createColumnMutation.mutate(columnPayload)
   }
 
   const handleDeleteColumn = (columnId) => {
@@ -255,17 +299,29 @@ function ProjectSidebar({ isOpen, onClose, project, onUpdateProject }) {
     // deleteColumnMutation.mutate(columnId)
   }
 
-  const handleAddTask = (taskData) => {
-    const newTask = {
-      id: `task-${Date.now()}`, // Temporary ID
-      ...taskData,
-      avatarColors: ['#6B7280'],
-      avatarNames: ['ME'],
-    }
-    setTasks((prev) => [...prev, newTask])
+  const handleAddTask = (inlineTaskData) => {
+    const tempId = `task-${Date.now()}` // Temporary ID
     
-    // TODO: Backend Sync
-    // createTaskMutation.mutate({ projectId: project.id, ...newTask })
+    // Optimistic UI data (internal only)
+    const optimisticTask = {
+      id: tempId,
+      ...inlineTaskData,
+    }
+    setTasks((prev) => [...prev, optimisticTask])
+    
+    const isoToday = new Date().toISOString().split('T')[0] // Generates YYYY-MM-DD
+    
+    // Backend payload: matching the exact DTO mapping requirements
+    // inlineTaskData has properties: title, description, deadLineDate, columnId
+    const taskPayload = {
+      title: inlineTaskData.title,
+      description: inlineTaskData.description,
+      startDate: isoToday,
+      deadLineDate: inlineTaskData.deadLineDate,
+      columnId: inlineTaskData.columnId
+    }
+
+    createTaskMutation.mutate(taskPayload)
   }
 
   const handleDeleteTask = (taskId) => {
@@ -650,14 +706,11 @@ function ProjectSidebar({ isOpen, onClose, project, onUpdateProject }) {
             {/* Content Area */}
             {activeTab === 'board' ? (
               <div className="flex-1 overflow-x-auto p-4 bg-white">
-                {/* 
-                // Enable this loading spinner when fetching is implemented
-                {isLoadingKanban ? (
-                  <div className="h-full flex items-center justify-center">
+                {isPending || taskLoading ? (
+                  <div className="h-full flex items-center justify-center w-full">
                     <div className="w-8 h-8 border-4 border-gray-900 border-t-transparent rounded-full animate-spin" />
                   </div>
                 ) : ( 
-                */}
                 <div className="flex gap-3 h-full min-w-max">
                   {columns.map((column) => (
                     <DroppableColumn
@@ -665,10 +718,7 @@ function ProjectSidebar({ isOpen, onClose, project, onUpdateProject }) {
                       column={column}
                       tasks={getTasksForColumn(column.id)}
                       onDeleteTask={handleDeleteTask}
-                      onOpenAddTask={(columnId) => {
-                        setSelectedColumnForTask(columnId)
-                        setShowAddTask(true)
-                      }}
+                      onAddTask={handleAddTask}
                       onDeleteColumn={handleDeleteColumn}
                       canDeleteColumn={columns.length > 1}
                       onOpenTask={setSelectedTask}
@@ -688,7 +738,7 @@ function ProjectSidebar({ isOpen, onClose, project, onUpdateProject }) {
                     </button>
                   </div>
                 </div>
-                {/* )} */}
+                )}
               </div>
             ) : (
               <CommentsPanel
@@ -706,16 +756,6 @@ function ProjectSidebar({ isOpen, onClose, project, onUpdateProject }) {
         isOpen={showAddColumn}
         onClose={() => setShowAddColumn(false)}
         onAdd={handleAddColumn}
-      />
-
-      <AddTaskModal
-        isOpen={showAddTask}
-        onClose={() => {
-          setShowAddTask(false)
-          setSelectedColumnForTask(null)
-        }}
-        onAdd={handleAddTask}
-        columnId={selectedColumnForTask}
       />
 
       <TaskDetailsModal
