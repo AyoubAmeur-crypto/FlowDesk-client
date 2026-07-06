@@ -8,6 +8,16 @@ jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
+    env:
+      E2E_BASE_URL: http://localhost:5173
+      VITE_API_URL: http://localhost:8080
+      DB_HOST: localhost
+      DB_PORT: 5434
+      DB_USERNAME: postgres
+      DB_PASS: "0000"
+      DB_NAME: FlowDesk
+      ADMIN_USERNAME: admin@example.com
+      ADMIN_PASSWORD: adminPass
     steps:
     - name: Checkout Client repo
       uses: actions/checkout@v4
