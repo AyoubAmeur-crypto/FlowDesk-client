@@ -14,10 +14,10 @@ jobs:
       DB_HOST: localhost
       DB_PORT: 5434
       DB_USERNAME: postgres
-      DB_PASS: "0000"
+      DB_PASS: ${{ secrets.E2E_DB_PASS }}
       DB_NAME: FlowDesk
-      ADMIN_USERNAME: admin@example.com
-      ADMIN_PASSWORD: adminPass
+      ADMIN_USERNAME: ${{ secrets.E2E_ADMIN_USERNAME }}
+      ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
     steps:
     - name: Checkout Client repo
       uses: actions/checkout@v4
@@ -38,6 +38,11 @@ jobs:
       run: npm install -g pnpm@9 && pnpm install
     - name: Install Playwright Browsers
       run: pnpm exec playwright install --with-deps
+    - name: Validate CI secrets
+      run: |
+        test -n "$DB_PASS"
+        test -n "$ADMIN_USERNAME"
+        test -n "$ADMIN_PASSWORD"
     - name: Run Playwright tests
       # Tests run serially (workers: 1) automatically based on playwright.config.ts 
       # to prevent DB concurrency issues in the shared PostgreSQL container
