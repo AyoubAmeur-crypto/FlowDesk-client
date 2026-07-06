@@ -1,0 +1,56 @@
+name: Playwright Tests
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    env:
+      E2E_BASE_URL: http://localhost:5173
+      VITE_API_URL: http://localhost:8080
+      DB_HOST: localhost
+      DB_PORT: 5434
+      DB_USERNAME: postgres
+      DB_PASS: ${{ secrets.E2E_DB_PASS }}
+      DB_NAME: FlowDesk
+      ADMIN_USERNAME: ${{ secrets.E2E_ADMIN_USERNAME }}
+      ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
+    steps:
+    - name: Checkout Client repo
+      uses: actions/checkout@v4
+      
+    - name: Checkout Backend repo
+      uses: actions/checkout@v4
+      with:
+        repository: AyoubAmeur-crypto/FlowDeskSpringBootBackend
+        path: FlowDesk-backend
+
+    - name: Prepare Backend for Docker Compose
+      run: mv FlowDesk-backend ../FlowDesk
+
+    - uses: actions/setup-node@v6
+      with:
+        node-version: 24
+    - name: Install dependencies
+      run: npm install -g pnpm@9 && pnpm install
+    - name: Install Playwright Browsers
+      run: pnpm exec playwright install --with-deps
+    - name: Validate CI secrets
+      run: |
+        test -n "$DB_PASS"
+        test -n "$ADMIN_USERNAME"
+        test -n "$ADMIN_PASSWORD"
+    - name: Run Playwright tests
+      # Tests run serially (workers: 1) automatically based on playwright.config.ts 
+      # to prevent DB concurrency issues in the shared PostgreSQL container
+      run: pnpm exec playwright test
+    - uses: actions/upload-artifact@v4
+      if: ${{ !cancelled() }}
+      with:
+        name: playwright-report
+        # Uploads the HTML report, along with traces and videos for debugging failed runs
+        path: playwright-report/
+        retention-days: 30

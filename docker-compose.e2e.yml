@@ -1,0 +1,131 @@
+# ============================================================
+# FlowDesk E2E Test Infrastructure
+# ============================================================
+# Orchestrates the services needed for Playwright E2E tests.
+#
+# ┌──────────┐     ┌──────────┐
+# │  Client   │────▶│ Backend  │────▶│   DB    │
+# │ (Playwright│     │ (Spring) │     │ (Postgres)│
+# │ tests +    │     │ :8080    │     │ :5432   │
+# │ Vite :5173)│     └──────────┘     └─────────┘
+# └──────────┘         │
+#   Host machine    Docker network (flowdesk-e2e)
+#
+# Usage:
+#   CI (pull pre-built):  docker compose -f docker-compose.e2e.yml up -d --wait
+#     Set BACKEND_IMAGE env to your registry image tag.
+#
+#   CI (build from source): docker compose -f docker-compose.e2e.yml up -d --build --wait
+#     Requires Dockerfile in ../FlowDesk/.
+#
+#   Local Docker: docker compose -f docker-compose.e2e.yml up -d --wait
+#
+#   Teardown:     docker compose -f docker-compose.e2e.yml down -v
+# ============================================================
+
+services:
+
+  # ============================================================
+  # PostgreSQL — primary data store
+  # ============================================================
+  db:
+    image: postgres:16-alpine
+    container_name: flowdesk-e2e-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "0000"
+      POSTGRES_DB: FlowDesk
+    ports:
+      - "${E2E_DB_PORT:-5434}:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d FlowDesk" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - flowdesk-e2e
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  # ============================================================
+  # Spring Boot API — backend server
+  # ============================================================
+  # Two modes:
+  #   1. PULL mode (CI) — set BACKEND_IMAGE env to a registry tag.
+  #      Run: docker compose pull && docker compose up -d --wait
+  #   2. BUILD mode (local) — requires Dockerfile in ../FlowDesk/.
+  #      Run: docker compose up -d --build --wait
+  # ============================================================
+  backend:
+    image: ${BACKEND_IMAGE:-flowdesk-backend:e2e-test}
+    container_name: flowdesk-e2e-backend
+    restart: unless-stopped
+    build:
+      context: ../FlowDesk
+      dockerfile: Dockerfile
+    environment:
+      # ── Database ────────────────────────────────────────────
+      # Uses the service name 'db' as hostname inside Docker network
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/FlowDesk
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: "0000"
+
+      # ── JPA / Hibernate ────────────────────────────────────
+      SPRING_JPA_HIBERNATE_DDL_AUTO: create
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
+      SPRING_JPA_SHOW_SQL: "false"
+
+      # ── JWT ────────────────────────────────────────────────
+      SPRING_APP_JWTSECRET: F7mZ2k9xQpLJ5R8H0NwS4eD1C6AOTYBvVgMUIhEKasW
+      SPRING_APP_JWTEXPIRATIONMS: 86400000
+      SPRING_APP_COOKIENAME: cyberNova
+
+      # ── Cloudinary ─────────────────────────────────────────
+      CLOUDINARY_CLOUD_NAME: dt1yngqg0
+      CLOUDINARY_API_KEY: 887134398589774
+      CLOUDINARY_API_SECRET: Y1Y9fgo4qMWbmr6d3Z1dTH-NMXw
+
+      # ── Upload limits ──────────────────────────────────────
+      SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE: 2MB
+      SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE: 2MB
+
+      # ── Tomcat ─────────────────────────────────────────────
+      SERVER_TOMCAT_MAX_SWALLOW_SIZE: -1
+      SERVER_TOMCAT_CONNECTION_TIMEOUT: 80000
+
+      # ── Logging ────────────────────────────────────────────
+      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK: WARN
+      LOGGING_LEVEL_ORG_HIBERNATE_SQL: WARN
+
+      # ── E2E mode marker (read by app if needed) ────────────
+      E2E_MODE: "true"
+
+    ports:
+      - "${E2E_API_PORT:-8080}:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      # Spring Boot returns something on /login even before full startup,
+      # but we just need the port to be accepting connections.
+      test: [ "CMD-SHELL", "wget --server-response --spider --tries=1 http://localhost:8080/login 2>&1 | grep -q 'HTTP/'" ]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 45s
+    networks:
+      - flowdesk-e2e
+
+# ============================================================
+# Networks & Volumes
+# ============================================================
+networks:
+  flowdesk-e2e:
+    name: flowdesk-e2e
+    driver: bridge
+
+volumes:
+  pgdata:
+    driver: local

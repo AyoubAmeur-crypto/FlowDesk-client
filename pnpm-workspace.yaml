@@ -1,0 +1,7 @@
+packages:
+  - .
+
+allowBuilds:
+  '@heroui/shared-utils': true
+  core-js-pure: true
+  esbuild: true
